@@ -40,6 +40,7 @@ class Statistiques():
     """
     statistique basique du joueur (argent, vie, ennemie tué, score, ...)
     """
+    #t con ou quoi faut metrtre dans la bd
     def __init__(self):
         self.argent = 1000
         self.ennemie_tue = 0
