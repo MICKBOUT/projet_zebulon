@@ -22,7 +22,7 @@ enemi_bleu_image = pygame.image.load("enemi/enemi_bleu.png").convert_alpha()
 
 #icone
 bouton_play_image = pygame.image.load("assets/button/bouton-jouer.png").convert_alpha()
-vie_image = pygame.image.load("assets/button/coeur (2).png").convert_alpha()
+vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
 
 bouton_exit_placer = pygame.image.load("assets/button/quitter_le_mode_tour_placer.png").convert_alpha()
 bouton_exit_placer_rect = bouton_exit_placer.get_rect(bottomleft = (map_rect.right, screen_hauteur))
@@ -231,7 +231,11 @@ while running:
                 enemies.add(Enemi_vert)
             if event.key == pygame.K_3:
                 enemies.add(Enemi_bleu)
-                
+                         
+            if mode_placement != False:
+                if event.key == pygame.K_ESCAPE:
+                    mode_placement = False
+
         if event.type == pygame.MOUSEBUTTONDOWN: #event pour détecter les clique de la souris
             #if event.button == 1:
             #    print(mouse_pos)
@@ -260,6 +264,12 @@ while running:
                         else:#dans ce cas, le joueur n'as pas assez d'argent
                             pass
                             #print() vous n'avez pas assez d'argent et tout et tout
+                    else:
+                        for icone_tour in hud: #sert a changer quelle tour le joueur peut placer même si il est déjà dans le mode placment
+                            if icone_tour.rect.collidepoint(mouse_pos):
+                                mode_placement = icone_tour
+                                mouse_tour_rect = pygame.Rect(mouse_pos, liste_tour[icone_tour.tour_index][1].size)
+
                 if event.button == 1:#pour sortir du mode placement de tour
                     if bouton_exit_placer_rect.collidepoint(mouse_pos):
                         mode_placement = False
@@ -302,5 +312,6 @@ a faire
     chemin min()
     vie1 draw et update != 
 
+    restucturer le code pour que le mode_placement ne soit plus dans la fonction mouse bouton down mais a part pour une meilleur lisibilité
     class argent
 """
