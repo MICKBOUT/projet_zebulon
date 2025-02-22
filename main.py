@@ -20,6 +20,8 @@ enemi_rouge_image = pygame.image.load("enemi/enemi_rouge.png").convert_alpha()
 enemi_vert_image = pygame.image.load("enemi/enemi_vert.png").convert_alpha()
 enemi_bleu_image = pygame.image.load("enemi/enemi_bleu.png").convert_alpha()
 
+#background image
+background_v1 = pygame.image.load("assets/tour/background_v1.png")
 #icone
 bouton_play_image = pygame.image.load("assets/button/bouton-jouer.png").convert_alpha()
 vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
@@ -36,12 +38,15 @@ pygame.time.set_timer(SPAWN_ENEMY, 1000)
 
 #font
 font = pygame.font.Font(None, 130)
+font_prix = pygame.font.Font(None, 75)
 
 load_tour = [
     pygame.image.load("assets/tour/tour_test_v1.png").convert_alpha(),
     pygame.image.load("assets/tour/tour_2_rouge.png").convert_alpha(),]
 
 liste_tour = [(tour, tour.get_rect(topleft = (0, 0))) for tour in load_tour]
+liste_tour_prix = [300, 500]
+if len(liste_tour_prix) <= len(liste_tour): liste_tour_prix += ([-1] * (len(liste_tour) - len(liste_tour_prix))) #si j'ai oublier de mettre un prix pour une tour, ajoute des -1 a la liste pour que il n'y ai pas d'erreure dans le scripte
 
 border = pygame.image.load("assets/tour/border.png").convert_alpha()
 border_rect = border.get_rect(topright = (screen_longeur, 0))
@@ -172,16 +177,22 @@ class Hud_tour(pygame.sprite.Sprite):
         super().__init__()
         self.tour_index = tour_index
         self.image = liste_tour[tour_index][0]
-
-        self.image = pygame.transform.scale_by(liste_tour[tour_index][0], 200/liste_tour[tour_index][1].w)
-        print(liste_tour[tour_index][1].w)
-        self.rect = self.image.get_rect(topleft = (map_rect.right +  200 * ((tour_index)%2), (200 * (tour_index // 2))))
+        self.prix = liste_tour_prix[tour_index]
+        self.image = pygame.transform.scale_by(liste_tour[tour_index][0], 180/liste_tour[tour_index][1].w)
+        self.rect = self.image.get_rect(topleft = (map_rect.right + 200 * ((tour_index)%2), (200 * (tour_index // 2))))
+        
+        self.prix = font_prix.render(f"{liste_tour_prix[tour_index]}$", True, (0, 255, 255))
     
     def ajouter_tour(self, position):
-
         #en vrai ça serait bien de mettre une vérif qui dit que je peux pas placer une tour si il y en a deja une
         #mais ca sert a rien par ce que dans le scripte on vérifie déja ca donc ca serait redondant 
         tour.add(Tour(position, self.tour_index))
+    
+    def afficher(self):
+        "permet d'avoir un meilleur controle sur l'affichage des tours, avec le background et le reste"
+        screen.blit(background_v1, self.rect)
+        screen.blit(self.image, (self.rect.x + 10, self.rect.y + 10))
+        screen.blit(self.prix, (self.rect.left + 10, self.rect.bottom - 30))
 
 #ennemie temporaire, ces valeurs ne serrons plus présente dans le scrpte finale
 Enemi_rouge = Enemi(pos=(0, 434), speed=1, vie= 100, damage=1, image=enemi_rouge_image) # Créer un nouvel ennemi
@@ -295,7 +306,11 @@ while running:
 
     screen.blit(Systeme_Vague.text_vague, Systeme_Vague.rect_text_vague)  # Affiche tous les ennemis
     gestion_affichage_mode_placement() #gestion du curseur rouge / bleu, le l'icone fermer + de la preview de la tour
-    hud.draw(screen) #draw les icones des tours
+    #hud.draw(screen) #draw les icones des tours
+
+    for i in hud:
+        i.afficher()
+
     Vie1.update()#draw la vie, + update avec les 
     
     #map
