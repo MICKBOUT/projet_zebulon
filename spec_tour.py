@@ -3,7 +3,7 @@
 spécifiaction tour
 tour_1 :
     cooldown entre chaque balle :
-        0,8 (75 tire par seconde)
+        40 tick entre chaque tire (1,33 tire par seconde)
     range : 
         200px
     Tire a tavers les énemies
@@ -14,10 +14,11 @@ tour_1 :
         Non
     dégat par tire :
         3 dmg par tire 
-
+    index balle:
+        0
 tour_2 :
     cooldown entre chaque balle :
-        1 (60 tire par seconde)
+        60 tick entrer chaque tire (1 tire par seconde)
     range:
         250 pixel
     Tire a tavers les énemies
@@ -27,10 +28,12 @@ tour_2 :
     dégat de zone :
         Non
     dégat par tire :
-        3 dmg par tire 
+        3 dmg par tire
+    index balle:
+        1
 """
 
-tour_1 = [0.8, 200, False, None, False, 3]
-tour_2 = [1, 250, True, None, False, 3]
+tour_1 = [40, 200, False, None, False, 3, 0]
+tour_2 = [60, 250, True, None, False, 3, 1]
 
 stat_tour = [tour_1, tour_2]

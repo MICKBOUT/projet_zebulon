@@ -23,6 +23,7 @@ enemi_bleu_image = pygame.image.load("enemi/enemi_bleu.png").convert_alpha()
 
 #background image
 background_v1 = pygame.image.load("assets/tour/background_v1.png")
+
 #icone
 bouton_play_image = pygame.image.load("assets/button/bouton-jouer.png").convert_alpha()
 vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
@@ -41,13 +42,16 @@ pygame.time.set_timer(SPAWN_ENEMY, 1000)
 font = pygame.font.Font(None, 130)
 font_prix = pygame.font.Font(None, 75)
 
-load_tour = [
+load_tour = [ 
     pygame.image.load("assets/tour/tour_test_v1.png").convert_alpha(),
-    pygame.image.load("assets/tour/tour_2_rouge.png").convert_alpha(),]
-
+    pygame.image.load("assets/tour/tour_2_rouge.png").convert_alpha()]
 liste_tour = [(tour, tour.get_rect(topleft = (0, 0))) for tour in load_tour]
+
 liste_tour_prix = [300, 500]
 if len(liste_tour_prix) <= len(liste_tour): liste_tour_prix += ([-1] * (len(liste_tour) - len(liste_tour_prix))) #si j'ai oublier de mettre un prix pour une tour, ajoute des -1 a la liste pour que il n'y ai pas d'erreure dans le scripte
+
+liste_image_balle = [pygame.image.load("assets/tour/balle_1.png"),
+                     pygame.image.load("assets/tour/balle_2.png")]
 
 border = pygame.image.load("assets/tour/border.png").convert_alpha()
 border_rect = border.get_rect(topright = (screen_longeur, 0))
@@ -158,7 +162,7 @@ class Vagues():
         if self.compteur_vague_tick < self.numero_vague*3:
             Enemi_rouge = Enemi(pos=(0, 434), speed=1, vie= 100, damage=1, image=enemi_rouge_image)
             groupe_enemie.add(Enemi_rouge)
-        print(self.compteur_vague_tick)
+        #print(self.compteur_vague_tick)
         
     def stop_vague(self):
         self.compteur_vague_tick = 0      
@@ -169,17 +173,19 @@ class Tour(pygame.sprite.Sprite):
     """
     def __init__(self, position, nb_tour = 0):
         super().__init__()
-        self.ennemie = False #sert a savoir si un enemie est viser ou non
+        self.ennemie = None #sert a savoir si un enemie est viser ou non
         self.image_load = liste_tour[nb_tour][0] #image associer a la tour
         self.rect = self.image_load.get_rect(center = (position)) #rect qui sert de hitbow a la tour
-        self.cooldown, self.range, self.traverse, self.effect, self.zone, self.degat = stat_tour[nb_tour]
+        self.cooldown, self.range, self.traverse, self.effect, self.zone, self.degat, self.index_balle = stat_tour[nb_tour]
         
         self.position = position
         self.image = self.image_load
         self.rect_image_affichage = self.rect
-    
+        self.angle = 0
+        self.tick_depuis_dernier_tire = 0
+
     def viser(self):
-        if self.ennemie == False: #si aucun énemie n'est viser
+        if self.ennemie == None: #si aucun énemie n'est viser
             distance_ennemie_proche = None
             for ennemie in groupe_enemie:
                 distance = math.sqrt(((self.rect.centerx - ennemie.rect.centerx)**2) + ((self.rect.centery - ennemie.rect.centery)**2))
@@ -191,21 +197,50 @@ class Tour(pygame.sprite.Sprite):
                 self.ennemie = tampon_ennemie
 
         elif math.sqrt(((self.rect.centerx - self.ennemie.rect.centerx)**2) + ((self.rect.centery - self.ennemie.rect.centery)**2)) > self.range:
-            #dans le cas ou l'ennemie est plus loin que la range, on remet la valeur self. ennemie a false pour arreter de la viser
-            self.ennemie = False
+            #dans le cas ou l'ennemie est plus loin que la range, on remet la valeur self. ennemie a None pour arreter de la viser
+            self.ennemie = None
 
-        if self.ennemie != False: #ne pas mettre de else a la place du if car si le self.enemie est définie dans la boucle du dessus, il faut qu'on puisse rentrer dans cette boucle
-            deg = -math.degrees(math.atan2(self.ennemie.rect.centery - self.rect.centery, self.ennemie.rect.centerx - self.rect.centerx)) #formule qui calcule l'angle (counterclaockwize)
+        if self.ennemie != None: #ne pas mettre de else a la place du if car si le self.enemie est définie dans la boucle du dessus, il faut qu'on puisse rentrer dans cette boucle
+            self.angle = math.atan2(self.ennemie.rect.centery - self.rect.centery, self.ennemie.rect.centerx - self.rect.centerx) #formule qui calcule l'angle (counterclaockwize)
+            deg = -math.degrees(self.angle)
             self.image = pygame.transform.rotate(self.image_load, deg)
             self.rect_image_affichage = self.image.get_rect(center = (self.position))
 
+    def tirer(self):
+        if self.tick_depuis_dernier_tire >= self.cooldown:
+            if self.ennemie != None:
+                groupe_balle.add(Balle_tour(self.index_balle, self.rect.center, self.angle))
+                self.tick_depuis_dernier_tire = 0
+        else:
+            self.tick_depuis_dernier_tire += 1
+
     def update(self):
         self.viser()
+        self.tirer()
 
     def affichage(self):
         #pygame.draw.rect(screen, 'red', self.rect_image_affichage)
         #pygame.draw.rect(screen, 'black', self.rect)
         screen.blit(self.image, self.rect_image_affichage)
+
+class Balle_tour(pygame.sprite.Sprite):
+    def __init__(self, index_balle : int, position : tuple, angle : float):
+        super().__init__()
+        self.image = liste_image_balle[index_balle]
+        self.direction_x = math.cos(angle)
+        self.direction_y = math.sin(angle)
+        self.rect = self.image.get_rect(center = position)
+
+    def update(self):
+        self.rect.x += self.direction_x * 1 # *la vitesse de la balle (35 ) 1 pour débuger
+        self.rect.y += self.direction_y * 1
+        
+        if not map_rect.colliderect(self.rect):
+            self.kill()
+    
+    def afficher(self):
+        screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect)
 
 class Hud_tour(pygame.sprite.Sprite):
     def __init__(self, tour_index):
@@ -240,7 +275,7 @@ Vie1 = Vie(100, vie_image) #classe pour gérer la vie
 Systeme_Vague = Vagues() #classe pour gérer le système de vague
 groupe_enemie = pygame.sprite.Group() # Groupe d'ennemis
 groupe_tour = pygame.sprite.Group() #groupe avec les tour
-
+groupe_balle = pygame.sprite.Group() #groupe avec les balles
 hud = pygame.sprite.Group() #group pour gérer le hud de tour
 
 for i in range(len(liste_tour)):
@@ -335,6 +370,8 @@ while running:
     # Mise à jour
     groupe_enemie.update()
     groupe_tour.update()
+    groupe_balle.update()
+    
     #Affichage
     screen.fill("yellow") #fond jaune
     screen.blit(map_image, (0, 0)) #map
@@ -346,19 +383,25 @@ while running:
     gestion_affichage_mode_placement() #gestion du curseur rouge / bleu, le l'icone fermer + de la preview de la tour
     #hud.draw(screen) #draw les icones des tours
 
+    
+    #affichage : faire d'abord la map et ses élément puis le hud par ce que c'est sinon les projectif peuvent overlap bref voila
+    
+    groupe_enemie.draw(screen)
+
+    for tour in groupe_tour: #affichage des tour
+        tour.affichage()
+    
+    for balle in groupe_balle:
+        balle.afficher()
+    
     for élément in hud:
         élément.afficher()
     Vie1.update()#draw la vie, + update avec les 
     
-    #map
-    for tour in groupe_tour: #affichage des tour
-        tour.affichage()
-    groupe_enemie.draw(screen)
-    
     #for i in hitbox_chemin:# pour afficher la hitbox du chemin et debuger le code
     #    pygame.draw.rect(screen, "red", i)
     pygame.display.update()
-    clock.tick(400)  #Limite à 60 FPS
+    clock.tick(60)  #Limite à 60 FPS
 
 """
 a faire
@@ -366,6 +409,10 @@ a faire
     vie1 draw et update != 
 
     faire une fonction qui tire avec la classe Tour
+        régler le pb des balles qui partent pas droit,
+        régler le pb que si les balles vont trop vite, elle ne passent jamais au dessus d'un ennemie
+            peut être avec une line de pygame qui ferais la taille de la distance parcourus par la balle puis on vérifie si elle overlap ??
+            
     restucturer le code pour que le mode_placement ne soit plus dans la fonction mouse bouton down mais a part pour une meilleur lisibilité
     class argent
 """
