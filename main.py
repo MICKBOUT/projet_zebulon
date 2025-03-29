@@ -57,7 +57,7 @@ border = pygame.image.load("assets/tour/border.png").convert_alpha()
 border_rect = border.get_rect(topright = (screen_longeur, 0))
 
 #hitbox chemin
-liste_point_chemin = ((0, 400, 240, 470), (160, 160, 240, 470), (160, 160, 480, 240), (400, 160, 480, 555), (400, 480, 800, 555), (720, 320, 800, 555), (720, 320, 1200, 400))
+liste_point_chemin = ((0, 410, 230, 465), (170, 170, 230, 465), (170, 170, 455, 230), (410, 170, 470, 550), (410, 480, 790, 550), (730, 330, 790, 550), (730, 330, 1200, 390))
 hitbox_chemin = [pygame.Rect(x1, y1, x2 - x1, y2 - y1) for x1, y1, x2, y2 in liste_point_chemin]
 
 
@@ -98,6 +98,12 @@ class Enemi(pygame.sprite.Sprite):
                 else:
                     self.compteur -= self.speed
                     self.rect.y -= self.speed
+    
+    def enlever_vie(self, vie):
+        self.vie -= vie
+        if self.vie <= 0:
+            self.kill()
+            argent_joueur.ajouter(80)
 
 class Button():
     def __init__(self, pos, image):
@@ -116,7 +122,7 @@ class Vie():
     def __init__(self, vie, image):
             self.vie_initiale = vie
             self.vie = vie
-            self.pos = (400, 800)
+            self.pos = (320, 800)
             self.image = image
             self.rect = self.image.get_rect(center=self.pos)
             
@@ -131,9 +137,34 @@ class Vie():
         
     def update(self):
         text = font.render(str(self.vie), True, (150, 0, 0))
-        text_rect = text.get_rect(topleft = (200, 800))
+        text_rect = text.get_rect(topleft = (140, 800))
         screen.blit(self.image, self.pos)
         screen.blit(text, text_rect)
+
+class Argent():
+    def __init__(self, argent):
+            self.rendu = False
+            self.pos = (850, 810)
+            self.argent = argent
+            self.text = font.render(f"{self.argent}$", True, "black")
+
+    def ajouter(self, n):
+        self.argent += n
+        self.rendu = True
+    def retirer(self, n):
+        self.argent -= n
+        self.rendu = True
+    def definir(self, n):
+        self.argent = n
+        self.rendu = True
+    
+    def update(self):
+        if self.rendu == True:
+            self.text = font.render(f"{self.argent}$", True, "black")
+            self.rendu = False
+
+    def afficher(self):
+        screen.blit(self.text, self.pos)
 
 class Vagues():
     def __init__(self):
@@ -141,7 +172,7 @@ class Vagues():
         self.running = False
         self.compteur_vague_tick = 0
         self.text_vague = font.render("Vague 0", True, (105, 78, 165))
-        self.rect_text_vague = self.text_vague.get_rect(center = (800, 850))
+        self.rect_text_vague = self.text_vague.get_rect(center = (600, 850))
         
 
     def prochaine_vague(self):
@@ -149,7 +180,7 @@ class Vagues():
         self.running = True
         
         self.text_vague = font.render(f"Vague {self.numero_vague}", True, (105, 78, 165))
-        self.rect_text_vague = self.text_vague.get_rect(center= (800, 850))
+        self.rect_text_vague = self.text_vague.get_rect(center= (600, 850))
     
     def update_vague(self):
         self.compteur_vague_tick += 1
@@ -174,17 +205,20 @@ class Tour(pygame.sprite.Sprite):
     def __init__(self, position, nb_tour = 0):
         super().__init__()
         self.ennemie = None #sert a savoir si un enemie est viser ou non
-        self.image_load = liste_tour[nb_tour][0] #image associer a la tour
-        self.rect = self.image_load.get_rect(center = (position)) #rect qui sert de hitbow a la tour
-        self.cooldown, self.range, self.traverse, self.effect, self.zone, self.degat, self.index_balle = stat_tour[nb_tour]
-        
-        self.position = position
-        self.image = self.image_load
-        self.rect_image_affichage = self.rect
         self.angle = 0
         self.tick_depuis_dernier_tire = 0
+        self.cooldown, self.range, self.traverse, self.effect, self.zone, self.degat, self.index_balle = stat_tour[nb_tour]
+        self.image_load = liste_tour[nb_tour][0] #image associer a la tour
+        self.image = self.image_load
+        self.rect = self.image_load.get_rect(center = (position)) #rect qui sert de hitbow a la tour
+        self.rect_image_affichage = self.rect
+        self.position = position
+        self.rayon = self.rect.w//2 #avec 4, on peut créer un cercle avec ce rayon et avoir la même taille.
 
     def viser(self):
+        if not self.ennemie in groupe_enemie:#version pas opti mais qui marche
+            self.ennemie = None
+
         if self.ennemie == None: #si aucun énemie n'est viser
             distance_ennemie_proche = None
             for ennemie in groupe_enemie:
@@ -226,31 +260,40 @@ class Tour(pygame.sprite.Sprite):
 class Balle_tour(pygame.sprite.Sprite):
     def __init__(self, index_balle : int, position : tuple, angle : float):
         super().__init__()
-        self.image = liste_image_balle[index_balle]
-        self.direction_x = math.cos(angle)
-        self.direction_y = math.sin(angle)
+        self.image = pygame.transform.rotate(liste_image_balle[index_balle], -math.degrees(angle)) 
+        self.direction_x, self.direction_y = math.cos(angle), math.sin(angle)  #direction vers la quelle la balle ce dirige a chaque
+        self.pos = list(position)
         self.rect = self.image.get_rect(center = position)
-
-    def update(self):
-        self.rect.x += self.direction_x * 1 # *la vitesse de la balle (35 ) 1 pour débuger
-        self.rect.y += self.direction_y * 1
         
+    def mouvement(self):
+        self.pos[0] += self.direction_x * 20
+        self.pos[1] += self.direction_y * 20
+        self.rect.center = self.pos
         if not map_rect.colliderect(self.rect):
             self.kill()
     
+    def collision_ennemie(self):
+        for ennemie in groupe_enemie:
+            if self.rect.colliderect(ennemie.rect):
+                ennemie.enlever_vie(25) #plus tard, changer le 1 avec les dégat de la tour qui a enlever la vie
+                self.kill()
+
+    def update(self):
+        self.mouvement()    
+        self.collision_ennemie()
+
     def afficher(self):
-        screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "red", self.rect)
+        screen.blit(self.image, self.rect)   
 
 class Hud_tour(pygame.sprite.Sprite):
     def __init__(self, tour_index):
         super().__init__()
         self.tour_index = tour_index
-        self.image = liste_tour[tour_index][0]
+        self.taille_reel = liste_tour[tour_index][1].w
+        self.image = pygame.transform.scale_by(liste_tour[tour_index][0], 180/self.taille_reel)
         self.prix = liste_tour_prix[tour_index]
-        self.image = pygame.transform.scale_by(liste_tour[tour_index][0], 180/liste_tour[tour_index][1].w)
         self.rect = self.image.get_rect(topleft = (map_rect.right + 200 * ((tour_index)%2), (200 * (tour_index // 2))))
-        
+        self.rayon = self.taille_reel//2 #avec 4, on peut créer un cercle avec ce rayon et avoir la même taille.
         self.prix = font_prix.render(f"{liste_tour_prix[tour_index]}$", True, (0, 255, 255))
 
     def ajouter_tour(self, position):
@@ -265,6 +308,7 @@ class Hud_tour(pygame.sprite.Sprite):
         screen.blit(self.image, (self.rect.x + 10, self.rect.y + 10))
         screen.blit(self.prix, (self.rect.left + 10, self.rect.bottom - 30))
 
+
 #ennemie temporaire, ces valeurs ne serrons plus présente dans le scrpte finale
 Enemi_rouge = Enemi(pos=(0, 434), speed=1, vie= 100, damage=1, image=enemi_rouge_image) # Créer un nouvel ennemi
 Enemi_vert = Enemi(pos=(0, 434), speed=2, vie= 100, damage=2, image=enemi_vert_image)  
@@ -272,6 +316,7 @@ Enemi_bleu = Enemi(pos=(0, 434), speed=3, vie= 100, damage=1, image=enemi_bleu_i
 
 bouton_play = Button((50, 800), bouton_play_image) #bouton pour lancer une vague
 Vie1 = Vie(100, vie_image) #classe pour gérer la vie
+argent_joueur = Argent(500)
 Systeme_Vague = Vagues() #classe pour gérer le système de vague
 groupe_enemie = pygame.sprite.Group() # Groupe d'ennemis
 groupe_tour = pygame.sprite.Group() #groupe avec les tour
@@ -283,18 +328,34 @@ for i in range(len(liste_tour)):
 
 def gestion_affichage_mode_placement():
     """cette fonction gérer le dessous du curseur dans le joeur est de le mode placement de tour""" 
-    if mode_placement != False:
+    if mode_placement:
         screen.blit(bouton_exit_placer, (bouton_exit_placer_rect))
-        screen.blit(mode_placement.image, (screen_longeur-200, screen_hauteur-200, 200, 200))
+        screen.blit(Tour_selectioner_placement.image, (screen_longeur-200, screen_hauteur-200, 200, 200))
         
         if map_rect.contains(mouse_tour_rect):
-            if not any(une_tour.rect.colliderect(mouse_tour_rect) for une_tour in groupe_tour) and not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin):
-                pygame.draw.rect(screen,( 255, 0, 255), mouse_tour_rect)
-
+            if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin) and not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon -5) for une_tour in groupe_tour):
+                    pygame.draw.rect(screen, "green", mouse_tour_rect)
+                    screen.blit(liste_tour[Tour_selectioner_placement.tour_index][0], (mouse_pos[0] - (Tour_selectioner_placement.taille_reel//2), mouse_pos[1] - (Tour_selectioner_placement.taille_reel//2)))
             else:
-                pygame.draw.rect(screen, "Red", (mouse_tour_rect))
+                pygame.draw.rect(screen, "black", (mouse_tour_rect))
+                screen.blit(liste_tour[Tour_selectioner_placement.tour_index][0], (mouse_pos[0] - (Tour_selectioner_placement.taille_reel//2), mouse_pos[1] - (Tour_selectioner_placement.taille_reel//2)))
 
-mouse_tour_rect = pygame.Rect(0, 0, 75, 75)
+def entrer_mode_placement(tour_input):
+    """
+    ce scripte sert a ce que cette partie du code ne soit pas copier coller plusieur fois mais plutôt regrouper dans un seul scripte
+    Input : Element de la classe Hud_tour dans le groupe pygame.srrite.Groupe hud.
+    Output : None
+    fait rentrer le jeu dans le mode placement avec la tour selectionner en input
+    """
+    global mode_placement, Tour_selectioner_placement, mouse_tour_rect, mouse_tour_rayon
+    mode_placement = True
+    Tour_selectioner_placement = tour_input
+    #le - tour_input.rayon sert a ce que le sprite ne soit pas placer a la mauvaise frame sans avoir a utiliser un .center car la calsse n'est pas encore défini, il faudrais peut être regarder si une solution plus opti est possible dans le future
+    mouse_tour_rect = pygame.Rect((mouse_pos[0] - tour_input.rayon, mouse_pos[1] - tour_input.rayon), liste_tour[Tour_selectioner_placement.tour_index][1].size)
+    mouse_tour_rayon = Tour_selectioner_placement.rayon
+    
+    
+mouse_tour_rect = pygame.Rect(0, 0, 75, 75) #cette variable sert a ce qu'il n'y ai pas d'erreur a cause d'une variable par défini, une fois dans la boucle, elle est update en temps réel. 
 
 # Boucle principale
 running = True
@@ -315,45 +376,43 @@ while running:
                 groupe_enemie.add(Enemi_vert)
             if event.key == pygame.K_3:
                 groupe_enemie.add(Enemi_bleu)
+            if event.key == pygame.K_a:
+                entrer_mode_placement(hud.sprites()[0])
+            if event.key == pygame.K_z:
+                entrer_mode_placement(hud.sprites()[1])
                          
-            if mode_placement != False:
+            if mode_placement:
                 if event.key == pygame.K_ESCAPE:
                     mode_placement = False
 
         if event.type == pygame.MOUSEBUTTONDOWN: #event pour détecter les clique de la souris
-            #if event.button == 1:
-            #    print(mouse_pos)
+            if event.button == 1:
+                #print(mouse_pos)
+                pass
 
             if bouton_play.is_overmouse(mouse_pos): #event pour detécter si la souris est sur le bouton
                 if not Systeme_Vague.running:
                     Systeme_Vague.prochaine_vague()
 
             #gestion des tours
-            if mode_placement == False: #le mode placement correspond au mode ou l'on peut poser des tour sur la map
-                if event.button == 1:
-                    for icone_tour in hud:
-                        if icone_tour.rect.collidepoint(mouse_pos):
-                            mode_placement = icone_tour
-                            mouse_tour_rect = pygame.Rect(mouse_pos, liste_tour[icone_tour.tour_index][1].size)
+            if event.button == 1: #cette parti gère le joueur si il veux rentrer dans le mode placement
+                for icone_tour in hud:
+                    if icone_tour.rect.collidepoint(mouse_pos):
+                       entrer_mode_placement(icone_tour)
 
-
-            else: #ce else est activé si le joueur est dans le mode placement de tour
-                if event.button == 1:
+                if mode_placement != False: #ce else est activé si le joueur est dans le mode placement de tour
                     if map_rect.contains(mouse_tour_rect): #verifier si les coordoner sont dans l'écran
-                        if True: #plus tard, mettre ici la vérification de si on a assez d'argent ou pas
-                            if not any(une_tour.rect.colliderect(mouse_tour_rect) for une_tour in groupe_tour): #verifier si une tour collide avec l'endroit ou le joueur veut en placer une
-                                if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin):#est ce que le curseur est sur le chemin ?
-                                    mode_placement.ajouter_tour(mouse_pos)
-                    
-                        else:#dans ce cas, le joueur n'as pas assez d'argent
-                            pass
-                            #print() vous n'avez pas assez d'argent et tout et tout
-                    else:
-                        for icone_tour in hud: #sert a changer quelle tour le joueur peut placer même si il est déjà dans le mode placment
-                            if icone_tour.rect.collidepoint(mouse_pos):
-                                mode_placement = icone_tour
-                                mouse_tour_rect = pygame.Rect(mouse_pos, liste_tour[icone_tour.tour_index][1].size)
+                        if liste_tour_prix[Tour_selectioner_placement.tour_index] <= argent_joueur.argent:
+                            if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin):#est ce que le curseur est sur le chemin ?
+                                if not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon - 5) for une_tour in groupe_tour):
+                                    #le -5 est pour une marge et que le jeu ne soit pas trop frustrant pour le joueur)                               
+                                    Tour_selectioner_placement.ajouter_tour(mouse_pos)
+                                    mode_placement = False
+                                    argent_joueur.retirer(liste_tour_prix[Tour_selectioner_placement.tour_index])
 
+                        else: #dans ce cas, le joueur n'as pas assez d'argent
+                            print("vous n'avez pas assez d'argent et tout et tout")
+                    
                 if event.button == 1:#pour sortir du mode placement de tour
                     if bouton_exit_placer_rect.collidepoint(mouse_pos):
                         mode_placement = False
@@ -364,6 +423,7 @@ while running:
             if Systeme_Vague.compteur_vague_tick > 3*Systeme_Vague.numero_vague and len(groupe_enemie) == 0:
                 Systeme_Vague.running = False
                 Systeme_Vague.stop_vague()
+        
         if bouton_play.is_overmouse(mouse_pos):
                 pass
 
@@ -380,9 +440,8 @@ while running:
         screen.blit(bouton_play_image, bouton_play.pos)
 
     screen.blit(Systeme_Vague.text_vague, Systeme_Vague.rect_text_vague)  # Affiche tous les ennemis
-    gestion_affichage_mode_placement() #gestion du curseur rouge / bleu, le l'icone fermer + de la preview de la tour
-    #hud.draw(screen) #draw les icones des tours
-
+    gestion_affichage_mode_placement() #gestion du curseur Noir / Vert, le l'icone fermer + de la preview de la tour
+    argent_joueur.update()
     
     #affichage : faire d'abord la map et ses élément puis le hud par ce que c'est sinon les projectif peuvent overlap bref voila
     
@@ -390,29 +449,37 @@ while running:
 
     for tour in groupe_tour: #affichage des tour
         tour.affichage()
-    
+
     for balle in groupe_balle:
         balle.afficher()
     
     for élément in hud:
         élément.afficher()
-    Vie1.update()#draw la vie, + update avec les 
     
+    Vie1.update()#draw la vie, + update avec les calcules
+    argent_joueur.afficher()
+
     #for i in hitbox_chemin:# pour afficher la hitbox du chemin et debuger le code
     #    pygame.draw.rect(screen, "red", i)
     pygame.display.update()
-    clock.tick(60)  #Limite à 60 FPS
+    clock.tick(400)  #Limite à 60 FPS
 
 """
 a faire
     chemin min()
     vie1 draw et update != 
+    revoire la classe vie par ce que l'affichage est un peu bizzare est pas propre (priorité faible)
 
     faire une fonction qui tire avec la classe Tour
-        régler le pb des balles qui partent pas droit,
+        les balles despagnes si elles ne  sont pas contenue dans l'écran, vérifier si une grande balle despawn quand une petite partie de sa hitbox sort de l'écran ou quand l'entéirter de sa hitbox sort
+        
         régler le pb que si les balles vont trop vite, elle ne passent jamais au dessus d'un ennemie
             peut être avec une line de pygame qui ferais la taille de la distance parcourus par la balle puis on vérifie si elle overlap ??
-            
+    faire un meilleur message pour que le joueur sache quand il n'a plus d'argent
     restucturer le code pour que le mode_placement ne soit plus dans la fonction mouse bouton down mais a part pour une meilleur lisibilité
     class argent
-"""
+    revoire le systéme de spawn, les ennemies spawn par vague a l'intérieure des vagues, il faudrais qu'ils arrivent tous en mm temps ou presque
+    idée :
+        enlever le limite à 60 fps et calculer tout les déplacement avec un fonction qui regarde cb de temps depuis la dernière fram et qui avance les ennemies en conséquence
+        pb : assez dur a coder, il faut faire gaffe a ce que tout marche comme avant.
+        """
