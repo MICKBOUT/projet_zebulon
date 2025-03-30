@@ -33,7 +33,7 @@ tour_2 :
         1
 """
 
-tour_1 = [40, 200, False, None, False, 3, 0]
-tour_2 = [60, 250, True, None, False, 3, 1]
+tour_1 = [40, 200, False, None, False, 20, 0]
+tour_2 = [80, 250, True, None, False, 50, 1]
 
 stat_tour = [tour_1, tour_2]
