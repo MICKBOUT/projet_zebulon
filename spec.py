@@ -74,17 +74,38 @@ Les points faibles :
 ex : On peut pas faire une chaine qui alterne escargot, poulet escargot, poulet.
 fin en soit on peut le faire mais faudrai configurer le nb d'ennemi de chaque chaine = 1 mais ça ferait pleins de chaîne et en plus c'est super genant de faire ça
 """
-
-
-
+"""
+annimaux : 
+"escargot"
+"poulet"
+"bee"
+"bear"
+"rhino"
+"""
 vague_predefinie = [
 [
-    ["ours", 5, 25],
-    ["escargot", 5, 500]
+    ["poulet", 20, 1000],
+    ["poulet", 5, 500]
 
 ],
 [
-    ["escargot", 10, 250],
+    ["poulet", 20, 1000],
+    ["poulet", 5, 1000]
+],
+[
+    ["poulet", 20, 1000],
+    ["poulet", 5, 1000]
+],
+[
+    ["poulet", 20, 1000],
+    ["poulet", 5, 1000]
+],
+[
+    ["poulet", 20, 1000],
+    ["poulet", 5, 1000]
+],
+[
+   ["poulet", 20, 1000],
     ["poulet", 5, 1000]
 ]
 ]

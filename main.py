@@ -21,13 +21,13 @@ map_rect = map_image.get_rect(topleft = (0, 0))
 background_planks = pygame.image.load("assets/bg/planks_background.jpg").convert()
 
 #image ennemie
+
 enemi_escargot_image = pygame.image.load("assets/enemi/escargot.png").convert_alpha()
 enemi_poulet_image = pygame.image.load("assets/enemi/poulet.png").convert_alpha()
+enemi_poulet_image_toucher = pygame.image.load("assets/enemi/poulet_toucher.png").convert_alpha()
 enemi_bee_image = pygame.image.load("assets/enemi/bee.png").convert_alpha()
 enemi_ours_image = pygame.image.load("assets/enemi/ours.png").convert_alpha()
 enemi_rhino_image = pygame.image.load("assets/enemi/rhino.png").convert_alpha()
-
-
 
 #background image
 background_v1 = pygame.image.load("assets/tour/background_v1.png")
@@ -48,6 +48,10 @@ ecran_noir_opaque = pygame.Surface((1600, 900)).convert()
 ecran_noir_opaque.fill((0, 0, 0))
 ecran_noir_opaque.set_alpha(128)
 
+ecran_rouge_opaque = pygame.Surface((1600, 900)).convert()
+ecran_rouge_opaque.fill((255, 0, 0))
+ecran_rouge_opaque.set_alpha(60)
+
 bouton_exit_placer = pygame.image.load("assets/button/croix_fermer.png").convert_alpha()
 bouton_exit_placer_rect = bouton_exit_placer.get_rect(bottomleft = (map_rect.right, screen_hauteur))
 
@@ -65,11 +69,10 @@ font_amiloiorer = pygame.font.Font(None, 39)
 
 text_amiloorer_tour = font_amiloiorer.render("voulez vous améliorer la tour ?", True, "cyan", "black")
 text_amiloorer_tour_rect = text_amiloorer_tour.get_rect(midtop = (1400, 605))
-
-load_tour = [ 
-    pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
+vitesse_balle = (20, 20, 5, 20, 20, 20)
+load_tour = [pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
     pygame.image.load("assets/tour/tour_2_rouge.png").convert_alpha(),
-    pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
+    pygame.image.load("assets/tour/tour_3_lv1.png").convert_alpha(),
     pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
     pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
     pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha()]
@@ -97,7 +100,8 @@ liste_tour_prix = [300, 500, 300, 300, 300, 300]
 if len(liste_tour_prix) <= len(liste_tour): liste_tour_prix += ([-1] * (len(liste_tour) - len(liste_tour_prix))) #si j'ai oublier de mettre un prix pour une tour, ajoute des -1 a la liste pour que il n'y ai pas d'erreure dans le scripte
 
 liste_image_balle = [pygame.image.load("assets/tour/balle_1.png"),
-                     pygame.image.load("assets/tour/balle_2.png")]
+                     pygame.image.load("assets/tour/balle_2.png"),
+                     pygame.image.load("assets/tour/balle_3.png")]
 
 border = pygame.image.load("assets/tour/border.png").convert_alpha()
 border_rect = border.get_rect(topright = (screen_longeur, 0))
@@ -115,11 +119,13 @@ class Enemi(pygame.sprite.Sprite):
         super().__init__()
         self.index_point = 0
         self.image = image
+        self.image_toucher = enemi_poulet_image_toucher
         self.rect = self.image.get_rect(center = pos)
         self.vie = vie
         self.indice_chemin = 0
         self.speed = speed
         self.damage = damage
+        self.toucher = 0
 
     def update(self):
         x, y = self.rect.center
@@ -151,10 +157,15 @@ class Enemi(pygame.sprite.Sprite):
         if self.vie <= 0:
             self.kill()
             argent_joueur.ajouter(80)
+        self.toucher = 5
 
     def afficher(self):
-        screen.blit(self.image, self.rect)
-
+        if self.toucher > 0:
+            screen.blit(self.image_toucher, self.rect)
+            self.toucher -= 1
+        else:
+            screen.blit(self.image, self.rect)
+        
 class Button():
     def __init__(self, pos, image):
         """
@@ -282,12 +293,13 @@ class Tour(pygame.sprite.Sprite):
     """
     def __init__(self, position, nb_tour = 0):
         super().__init__()
+        self.cooldown, self.range, self.traverse, self.effect, self.zone, self.degat, self.index_balle, self.cost_upgrade = stat_tour[nb_tour][0]
+        
         self.index_tour = nb_tour
         self.ennemie = None #sert a savoir si un enemie est viser ou non
         self.angle = 0
         self.tick_depuis_dernier_tire = 0
         self.niveau = 1
-        self.cooldown, self.range, self.traverse, self.effect, self.zone, self.degat, self.index_balle, self.cost_upgrade = stat_tour[nb_tour][0]
         self.image_upgrade = liste_upgrade[nb_tour]
         self.image_load = liste_tour[nb_tour][0] #image associer a la tour
         self.image = self.image_load
@@ -350,6 +362,8 @@ class Tour(pygame.sprite.Sprite):
 class Balle_tour(pygame.sprite.Sprite):
     def __init__(self, index_balle, position, angle : float, degat_balle):
         super().__init__()
+        self.degat_balle = degat_balle
+        self.vitesse_balle = vitesse_balle[index_balle]
         self.image = pygame.transform.rotate(liste_image_balle[index_balle], -math.degrees(angle)) 
         self.direction_x, self.direction_y = math.cos(angle), math.sin(angle)  #direction vers la quelle la balle ce dirige a chaque
         self.pos = list(position)
@@ -357,8 +371,8 @@ class Balle_tour(pygame.sprite.Sprite):
         self.degat_balle = degat_balle
         
     def mouvement(self):
-        self.pos[0] += self.direction_x * 20
-        self.pos[1] += self.direction_y * 20
+        self.pos[0] += self.direction_x * self.vitesse_balle
+        self.pos[1] += self.direction_y * self.vitesse_balle
         self.rect.center = self.pos
         if not map_rect.colliderect(self.rect):
             self.kill()
@@ -408,7 +422,7 @@ bouton_ameliorer_annuler = Button((1400, 700), bouton_exit_placer)
 bouton_son = son_on_image.get_rect(topleft = (350, 250))
 
 Vie1 = Vie(100, vie_image) #classe pour gérer la vie
-argent_joueur = Argent(500000)
+argent_joueur = Argent(5000)
 Systeme_Vague = Vagues() #classe pour gérer le système de vague
 hud = pygame.sprite.Group() #group pour gérer le hud de tour
 groupe_enemie = pygame.sprite.Group() # Groupe d'ennemis
@@ -477,7 +491,7 @@ while running:
                             son = True
                             son_image = son_on_image
         #affichage habituelle:
-        screen.blit(background_planks, (0, 0))
+        screen.fill("yellow") #fond jaune
         screen.blit(map_image, (0, 0)) #map
         if not Systeme_Vague.running: screen.blit(bouton_play_image, bouton_play.pos)
         screen.blit(Systeme_Vague.text_vague, Systeme_Vague.rect_text_vague) 
@@ -600,7 +614,7 @@ while running:
         Vie1.update()
 
         #Affichage
-        screen.blit(background_planks, (0, 0))
+        screen.fill("yellow") #fond jaune
         screen.blit(map_image, (0, 0)) #map
         if not mode_ameliorer and not mode_placement:    
             for tour_hud in hud:
@@ -645,7 +659,7 @@ while running:
         # for i in hitbox_chemin:# pour afficher la hitbox du chemin et debuger le code
         #    pygame.draw.rect(screen, "red", i)
     pygame.display.update()
-    clock.tick(120)  #Limite à 60 FPS
+    clock.tick(60)  #Limite à 60 FPS
 
 """
 a faire
@@ -665,4 +679,7 @@ a faire
     idée :
         enlever le limite à 60 fps et calculer tout les déplacement avec un fonction qui regarde cb de temps depuis la dernière fram et qui avance les ennemies en conséquence
         pb : assez dur a coder, il faut faire gaffe a ce que tout marche comme avant.
+    
+        
+    faire un systeme de explosion avec des degat de zone
         """
