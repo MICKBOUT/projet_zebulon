@@ -39,14 +39,30 @@ tour_2 :
 tour_3 et plus:
     duplication de la tour  1 pour tester des fonctionalité dans le code
         """
-#cooldow, range, pénétration, effect tire, dégat de zone, dégat des tire, index balle, cost upgrade next lv 
-tour_1 = [(40, 900, False, None, False, 20, 0, 350), (20, 200, False, None, False, 20, 0, 500), (10, 200, False, None, False, 20, 0, None)]
-tour_2 = [(100, 250, True, None, False, 50, 1, 600), (80, 250, True, None, False, 75, 1, 1200), (120, 250, True, None, False, 100, 1, None)]
-tour_3 = [(40, 200, False, None, False, 20, 0, 350), (20, 200, False, None, False, 20, 0, 500), (10, 200, False, None, False, 20, 0, None)]
-tour_4 = [(40, 200, False, None, False, 20, 0, 350), (20, 200, False, None, False, 20, 0, 500), (10, 200, False, None, False, 20, 0, None)]
-tour_5 = [(40, 200, False, None, False, 20, 0, 350), (20, 200, False, None, False, 20, 0, 500), (10, 200, False, None, False, 20, 0, None)]
-tour_6 = [(40, 200, False, None, False, 20, 0, 350), (20, 200, False, None, False, 20, 0, 500), (10, 200, False, None, False, 20, 0, None)]
-stat_tour = [tour_1, tour_2, tour_3, tour_4, tour_5, tour_6]
+#cooldow, range, pénétration, effect tire, dégat des tire, index balle, cost upgrade next lv 
+tour_1 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 400, False, None, 20, 0, 500 , 0), (10 , 600, False, None, 20 , 0, None, 0)]
+tour_2 = [(100, 250, False, None, 50, 1, 600, 0), (80 , 250, False, None, 75, 1, 1200, 0), (120, 250, False, None, 100, 1, None, 0)]
+tour_3 = [(100, 400, False, None, 20, 2, 350, 1), (100, 400, False, None, 20, 2, 500 , 1), (100, 400, False, None, 20 , 2, None, 1)]
+tour_4 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
+tour_5 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
+tour_6 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
+stat_tour = (tour_1, tour_2, tour_3, tour_4, tour_5, tour_6)
+
+#degat, vitesse, degat de zone, index image, index son
+balle_1 = [20, 20, False, 0]
+balle_2 = [50, 20, False, 1]
+balle_3 = [60, 8 , 120 , 2]
+stat_balle = (balle_1, balle_2, balle_3)
+
+#speed, vie, degat, animation 
+escargot = [1, 50  , 1, False]
+poulet =   [2, 75  , 1, False]
+bee =      [3, 75  , 1, False]
+bear =     [2, 250 , 1, False]
+rhino =    [1, 1000, 1, False]
+oiseau =   [3, 200 , 1, True ]
+stat_ennemie = (escargot, poulet, bee, bear, rhino, oiseau)
+index_ennemie = {"escargot" : 0, "poulet" : 1, "bee" : 2, "bear" : 3, "rhino" : 4, "oiseau": 5}
 
 """
 Forme demandée de la variable vague_predefinie:
@@ -84,8 +100,8 @@ annimaux :
 """
 vague_predefinie = [
 [
-    ["poulet", 20, 1000],
-    ["poulet", 5, 500]
+    ["oiseau", 20, 1000],
+    ["oiseau", 5, 500]
 
 ],
 [
