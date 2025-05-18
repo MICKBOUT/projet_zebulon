@@ -38,16 +38,21 @@ ennemie_oiseau_image = ((pygame.image.load("assets/enemi/oiseau_1.png").convert_
                         pygame.image.load("assets/enemi/oiseau_toucher_5.png").convert_alpha(),
                         pygame.image.load("assets/enemi/oiseau_toucher_6.png").convert_alpha()))
 #background image
-background_v1 = pygame.image.load("assets/tour/background_v1.png")
+background_v1 = pygame.image.load("assets/tour/background_v1.png").convert()
+
 
 #son
+son_vente_tour = pygame.mixer.Sound("assets/sound/son_vente_tour.mp3")
+son_refus = pygame.mixer.Sound("assets/sound/erreur.mp3")
+son_tour_placer = pygame.mixer.Sound("assets/sound/placement_tour.mp3")
 son_tire = pygame.mixer.Sound("assets/sound/tour_tire.mp3")
 son_cannon = pygame.mixer.Sound("assets/sound/cannon_tire.mp3")
-son = (son_tire, son_cannon)
+son_liste = (son_tire, son_cannon)
 #icone
 vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
 
 #boutton
+boutton_vendre_tour_image = pygame.image.load("assets/button/vendre_la_tour.png").convert_alpha() 
 boutton_setting_image = pygame.image.load("assets/button/setting.png").convert_alpha()
 boutton_play_image = pygame.image.load("assets/button/boutton_jouer.png").convert_alpha()
 bouton_valider_image = pygame.image.load("assets/button/valider.png").convert_alpha()
@@ -114,14 +119,23 @@ description = (pygame.image.load("assets/description_tour/description_tour_1.png
                )
 
 
-liste_tour_prix = [300, 500, 400] #300, 300, 300 #reste des prix pour les tours non défini 
+liste_tour_prix = [300, 500, 500] #300, 300, 300 #reste des prix pour les tours non défini 
 if len(liste_tour_prix) <= len(liste_tour): liste_tour_prix += ([-1] * (len(liste_tour) - len(liste_tour_prix))) #si j'ai oublier de mettre un prix pour une tour, ajoute des -1 a la liste pour que il n'y ai pas d'erreure dans le scripte
 
 #balles
 vitesse_balle = (20, 20, 8, 20, 20, 20)
-liste_image_balle = [pygame.image.load("assets/tour/balle_1.png").convert_alpha(),
-                     pygame.image.load("assets/tour/balle_2.png").convert_alpha(),
-                     pygame.image.load("assets/tour/balle_3.png").convert_alpha()]
+liste_image_balle = (pygame.image.load("assets/balle/balle_1.png").convert_alpha(),
+                     pygame.image.load("assets/balle/balle_2.png").convert_alpha(),
+                     pygame.image.load("assets/balle/balle_3.png").convert_alpha())
+
+explosion = (pygame.image.load("assets/balle/explosion_1.png").convert_alpha(),
+             pygame.image.load("assets/balle/explosion_2.png").convert_alpha(),
+             pygame.image.load("assets/balle/explosion_3.png").convert_alpha(),
+             pygame.image.load("assets/balle/explosion_4.png").convert_alpha(),
+             pygame.image.load("assets/balle/explosion_5.png").convert_alpha(),
+             pygame.image.load("assets/balle/explosion_6.png").convert_alpha(),
+             pygame.image.load("assets/balle/explosion_7.png").convert_alpha())
+
 
 #divers
 mouse_tour_rect = pygame.Rect(0, 0, 75, 75) #cette variable sert a ce qu'il n'y ai pas d'erreur a cause d'une variable par défini, une fois dans la boucle, elle est update en temps réel. 
@@ -172,22 +186,22 @@ class Enemi(pygame.sprite.Sprite):
     
     def enlever_vie(self, vie):
         self.vie -= vie
-        self.toucher = 15
+        self.toucher = 7
         if self.vie <= 0:
             self.kill()
             argent_joueur.ajouter(80)
     
     def frame(self):
-        self.compteur += 0.1
-        if self.compteur >= len(self.image[0]):
+        self.compteur += 1
+        if self.compteur // 10 >= len(self.image[0]):
                 self.compteur = 0
 
     def afficher(self):
         if self.toucher > 0:
             self.toucher -= 1
-            screen.blit(self.image[1][int(self.compteur)], self.rect) if self.animation else screen.blit(self.image[1], self.rect)
+            screen.blit(self.image[1][self.compteur // 10], self.rect) if self.animation else screen.blit(self.image[1], self.rect)
         else:
-            screen.blit(self.image[0][int(self.compteur)], self.rect) if self.animation else  screen.blit(self.image[0], self.rect)
+            screen.blit(self.image[0][self.compteur // 10], self.rect) if self.animation else  screen.blit(self.image[0], self.rect)
         
         if self.animation: self.frame() #sert a changer la fram pour que l'ennemie bouge
 
@@ -241,12 +255,17 @@ class Argent():
     def ajouter(self, n):
         self.argent += n
         self.rendu = True
+    
     def retirer(self, n):
         self.argent -= n
         self.rendu = True
+    
     def definir(self, n):
         self.argent = n
         self.rendu = True
+    
+    def clignotement(self):
+        self.tick_clignotment = 90
     
     def update(self):
         if self.tick_clignotment > 0:
@@ -265,8 +284,6 @@ class Argent():
     def afficher(self):
         screen.blit(self.text, self.pos)
     
-    def clignotement(self):
-        self.tick_clignotment = 120
 
 class Vagues():
     def __init__(self):
@@ -363,8 +380,7 @@ class Tour(pygame.sprite.Sprite):
         if self.tick_depuis_dernier_tire >= self.cooldown:
             if self.ennemie != None:
                 groupe_balle.add(Balle_tour(self.index_balle, self.rect.center, self.angle))
-                if son: 
-                    son[self.son].play()
+                if son: son_liste[self.son].play()
                 self.tick_depuis_dernier_tire = 0
         else:
             self.tick_depuis_dernier_tire += 1
@@ -387,13 +403,15 @@ class Balle_tour(pygame.sprite.Sprite):
         self.direction_x, self.direction_y = math.cos(angle), math.sin(angle)  #direction vers la quelle la balle ce dirige a chaque
         self.pos = list(position)
         self.rect = self.image.get_rect(center = position)
-        
+        self.en_vie = True
+
     def mouvement(self):
         self.pos[0] += self.direction_x * self.speed
         self.pos[1] += self.direction_y * self.speed
         self.rect.center = self.pos
         if not map_rect.colliderect(self.rect):
             self.kill()        
+    
     def collision_ennemie(self):
         for ennemie in groupe_enemie:
             if self.rect.colliderect(ennemie.rect):
@@ -401,14 +419,30 @@ class Balle_tour(pygame.sprite.Sprite):
                     for ennemie_zone in groupe_enemie:
                         if math.sqrt((self.pos[0] - ennemie_zone.rect.centerx)**2 + (self.pos[1] - ennemie_zone.rect.centery)**2) <= self.zone:
                             ennemie_zone.enlever_vie(self.degat_balle)
+                    self.en_vie = False
+                    self.animation = 0
+                    self.image = explosion[0]
+                    self.rect = self.image.get_rect(center = self.pos)
+                
                 else:
                     ennemie.enlever_vie(self.degat_balle) #plus tard, changer le 1 avec les dégat de la tour qui a enlever la vie
-                self.kill()
+                    self.kill()
                 break #fait en sorte que la balle touche un seul ennemie
-            
+    
+    def explosion(self):
+        self.image = explosion[self.animation // 2]
+        self.animation += 1
+        if self.animation // 2 >= len(explosion):
+                self.kill()
+
+
     def update(self):
-        self.mouvement()    
-        self.collision_ennemie()
+        if self.en_vie:       
+            self.mouvement() 
+            self.collision_ennemie()
+        else:
+            self.explosion()
+            
 
     def afficher(self):
         screen.blit(self.image, self.rect)
@@ -439,9 +473,10 @@ class Hud_tour(pygame.sprite.Sprite):
 
 boutton_play = Button((10, 800), boutton_play_image) #bouton pour lancer une vague
 boutton_setting = Button((1125, 10), boutton_setting_image) #bouton pour aller dans les paramètres
-boutton_ameliorer_valider = Button((1250, 700), bouton_valider_image)
-boutton_ameliorer_annuler = Button((1400, 700), bouton_exit_placer)
+boutton_ameliorer_valider = Button((1250, 675), bouton_valider_image)
+boutton_ameliorer_annuler = Button((1400, 675), bouton_exit_placer)
 boutton_son = boutton_son_on_image.get_rect(topleft = (350, 250))
+boutton_vendre_la_tour = Button((1200, 800), boutton_vendre_tour_image) 
 
 Vie1 = Vie(100, vie_image) #classe pour gérer la vie
 argent_joueur = Argent(5000)# classe qui défini l'argent du joueur
@@ -519,14 +554,13 @@ while running:
         screen.blit(Systeme_Vague.text_vague, Systeme_Vague.rect_text_vague) 
         Vie1.afficher()
         argent_joueur.afficher()
-        screen.blit(boutton_setting_image, boutton_setting.pos)
-        groupe_enemie.draw(screen)
+        screen.blit(boutton_setting.image, boutton_setting.pos)
+        for ennemie in groupe_enemie: ennemie.afficher()
         for tour in groupe_tour: tour.afficher()
         for balle in groupe_balle: balle.afficher()
         for élément in hud: élément.afficher()
-        
         screen.blit(ecran_noir_opaque, (0, 0)) #perrmet d'avoir un fond noircis pour que le joueur comprenne qu'il est dans une autres fenêtre
-        pygame.draw.rect(screen, "white", (300, 200, 600, 400))
+        pygame.draw.rect(screen, "white", (300, 200, 600, 400)) #fond qui sert de menu pause
         pygame.draw.rect(screen, "black",(310, 210, 580, 380))
         screen.blit(son_image, boutton_son)
         #pygame.draw.rect(screen, 'red', setting_rect)
@@ -547,69 +581,95 @@ while running:
                     else:
                         mode_placement = False
                         mode_ameliorer = False
-                if event.key == pygame.K_1: #Créer un nouvel ennemi
+                if event.key == pygame.K_1: #Créer un nouvel ennemi #escargot
                     groupe_enemie.add(Enemi(0, image = ennemi_escargot_image))
-                elif event.key == pygame.K_2:
+                elif event.key == pygame.K_2:#poulet
                     groupe_enemie.add(Enemi(1, image = ennemi_poulet_image))
-                elif event.key == pygame.K_3:
+                elif event.key == pygame.K_3:#bee
                     groupe_enemie.add(Enemi(2, image = ennemi_bee_image))
-                elif event.key == pygame.K_4:
+                elif event.key == pygame.K_4:#bear
                     groupe_enemie.add(Enemi(3, image = ennemi_ours_image))
-                elif event.key == pygame.K_5:
+                elif event.key == pygame.K_5:#rhino
                     groupe_enemie.add(Enemi(4, image = ennemi_rhino_image))
-                elif event.key == pygame.K_6:
+                elif event.key == pygame.K_6: #oiseau
                     groupe_enemie.add(Enemi(5, image = ennemie_oiseau_image))
+                #pour que le joueur puisse selectioner une tour avec son clavier
                 elif event.key == pygame.K_a:
                     mode_ameliorer = False
-                    entrer_mode_placement(hud.sprites()[0])
+                    if argent_joueur.argent >= liste_tour_prix[0]:
+                        entrer_mode_placement(hud.sprites()[0])
+                    else:
+                        if son: son_refus.play()
+                        argent_joueur.clignotement()
+                
                 elif event.key == pygame.K_z:
                     mode_ameliorer = False
-                    entrer_mode_placement(hud.sprites()[1])
+                    if argent_joueur.argent >= liste_tour_prix[1]:
+                        entrer_mode_placement(hud.sprites()[1])
+                    else:
+                        if son: son_refus.play()
+                        argent_joueur.clignotement()
+            
                 elif event.key == pygame.K_e:
                     mode_ameliorer = False
-                    entrer_mode_placement(hud.sprites()[2])
-                            
+                    if argent_joueur.argent >= liste_tour_prix[2]:
+                        entrer_mode_placement(hud.sprites()[2])
+                    else:
+                        if son: son_refus.play()
+                        argent_joueur.clignotement()
+
             elif event.type == pygame.MOUSEBUTTONDOWN: #event pour détecter les clique de la souris
-                if boutton_play.is_overmouse(mouse_pos): #event pour detécter si la souris est sur le bouton
-                    if not Systeme_Vague.running:
-                        Systeme_Vague.prochaine_vague()
-                
-                if event.button == 1:
-                    print(mouse_pos)
+                if event.button == 1: #si le joueur fait un clique gauche
+                    #print(mouse_pos)
                     if boutton_setting.is_overmouse(mouse_pos) and not mode_placement:
                         pause = True
-                    
+
+                    elif boutton_play.is_overmouse(mouse_pos): #event pour detécter si la souris est sur le bouton
+                        if not Systeme_Vague.running:
+                            Systeme_Vague.prochaine_vague()
+                
+                    elif bouton_exit_placer_rect.collidepoint(mouse_pos):
+                        mode_placement = False
                 #gestion des tours
-                if event.button == 1: #cette parti gère le joueur si il veux rentrer dans le mode placement
+                #cette parti gère le joueur si il veux rentrer dans le mode placement
                     for icone_tour in hud:
                         if icone_tour.rect.collidepoint(mouse_pos):
-                            if mode_ameliorer == False:
-                                    if argent_joueur.argent >= liste_tour_prix[icone_tour.tour_index]:
-                                        entrer_mode_placement(icone_tour)
-                                    else:
-                                        argent_joueur.clignotement()
+                            if mode_ameliorer: mode_ameliorer = False
+                            if argent_joueur.argent >= liste_tour_prix[icone_tour.tour_index]:
+                                entrer_mode_placement(icone_tour)
+                            else:
+                                if son: son_refus.play()
+                                argent_joueur.clignotement()
 
                     if mode_placement == True: #est activé si le joueur est dans le mode placement de tour
                         if map_rect.contains(mouse_tour_rect): #verifier si les coordoner sont dans l'écran
-                            if liste_tour_prix[Tour_selectioner_placement.tour_index] <= argent_joueur.argent: #pas utilie (peut être retirer)
-                                if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin):#est ce que le curseur est sur le chemin ?
-                                    if not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon - 5) for une_tour in groupe_tour):
-                                        #le -5 est pour une marge et que le jeu ne soit pas trop frustrant pour le joueur)                               
-                                        Tour_selectioner_placement.ajouter_tour(mouse_pos)
-                                        mode_placement = False
-                                        argent_joueur.retirer(liste_tour_prix[Tour_selectioner_placement.tour_index])
-
-                            else: #dans ce cas, le joueur n'as pas assez d'argent #ce cas n'est jamais verifier car si le joeur n'a pas d'argnet il ne peut pas acheter le tour dans un premier temps
-                                print("vous n'avez pas assez d'argent et tout et tout")
-                    
-                    elif mode_ameliorer: #si mode placment == False mais le joueur est déja dans le mode améliorer
-                        if tour_selectioner_ameliorer.niveau < 3:       
+                            if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin):#est ce que le curseur est sur le chemin ?
+                                if not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon - 5) for une_tour in groupe_tour):
+                                    #le -5 est pour une marge et que le jeu ne soit pas trop frustrant pour le joueur)                               
+                                    mode_placement = False
+                                    if son: son_tour_placer.play()
+                                    Tour_selectioner_placement.ajouter_tour(mouse_pos)
+                                    argent_joueur.retirer(liste_tour_prix[Tour_selectioner_placement.tour_index])
+                    else:
+                        if mode_ameliorer: #si mode placment == False mais le joueur est dans le mode améliorer
                             if boutton_ameliorer_valider.is_overmouse(mouse_pos):
-                                if argent_joueur.argent >= tour_selectioner_ameliorer.cost_upgrade:
-                                    tour_selectioner_ameliorer.upgrade()
-                        mode_ameliorer = False
-                        
-                    else: #mode placement == False -> fonction qui clique sur une tour et qui regarde + le joueur n'est pas dans le mode amiliorer
+                                if tour_selectioner_ameliorer.niveau < 3:
+                                    if argent_joueur.argent >= tour_selectioner_ameliorer.cost_upgrade:
+                                        tour_selectioner_ameliorer.upgrade()
+                                    else:
+                                        if son: son_refus.play()
+                                        argent_joueur.clignotement()
+                                        
+                            elif boutton_vendre_la_tour.is_overmouse(mouse_pos):
+                                tour_selectioner_ameliorer.kill()                        
+                                rendre = liste_tour_prix[tour_selectioner_ameliorer.index_tour]
+                                for i in range(tour_selectioner_ameliorer.niveau - 1): # a lv 1 ont n'a pas upgrade la tour
+                                    rendre += stat_tour[tour_selectioner_ameliorer.index_tour][i][6]
+                                argent_joueur.ajouter(rendre // 2 )
+                                if son: son_vente_tour.play()
+                            mode_ameliorer = False
+                            
+                        #mode placement == False -> fonction qui clique sur une tour et qui regarde + le joueur n'est pas dans le mode amiliorer
                         for une_tour in groupe_tour:
                             if math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2 )<= une_tour.rayon:
                                 tour_selectioner_ameliorer = une_tour
@@ -619,24 +679,18 @@ while running:
                                     text_cout_amelioration_rect =  text_cout_amelioration.get_rect(midtop = (text_amiloorer_tour_rect.midbottom))
                                 break #sert d'optimisation + le joueur ne séléctionne pas 2 tour en m^ temps
 
-                    if event.button == 1:#pour sortir du mode placement de tour
-                        if bouton_exit_placer_rect.collidepoint(mouse_pos):
-                            mode_placement = False
-
             elif event.type == SPAWN_ENEMY and Systeme_Vague.running:
                 # Créer un nouvel ennemi
                 Systeme_Vague.update_vague()
                 if Systeme_Vague.compteur_vague_tick > 3*Systeme_Vague.numero_vague and len(groupe_enemie) == 0:
                     Systeme_Vague.running = False
                     Systeme_Vague.stop_vague()
-            
-            elif boutton_play.is_overmouse(mouse_pos):
-                pass
 
         # Mise à jour
         groupe_enemie.update()
         groupe_balle.update()
         groupe_tour.update()
+        argent_joueur.update()
         Vie1.update()
 
         #Affichage
@@ -645,11 +699,11 @@ while running:
         if not mode_ameliorer and not mode_placement:    
             for tour_hud in hud:
                 if tour_hud.rect.collidepoint(mouse_pos):
-                    screen.blit(tour_hud.description, (1200, 600))  
+                    screen.blit(tour_hud.description, (1200, 600))
+                    break #la souris ne peut pas être sur deux tour a la fois donc si on trouve la tour sur laquelle le joueur est ca ne sert a rien de continuer
 
         if not Systeme_Vague.running:
             screen.blit(boutton_play.image, boutton_play.pos)
-        argent_joueur.update()
         
         screen.blit(Systeme_Vague.text_vague, Systeme_Vague.rect_text_vague)  # Affiche le text de la vague
         gestion_affichage_mode_placement() #gestion du curseur Noir / Vert, le l'icone fermer + de la preview de la tour
@@ -678,25 +732,25 @@ while running:
                 screen.blit(boutton_ameliorer_annuler.image, boutton_ameliorer_annuler)
             else:
                 screen.blit(text_amiliorer_nv_max, text_amiliorer_nv_max_rect)
+            screen.blit(boutton_vendre_la_tour.image, boutton_vendre_la_tour.rect)
             pygame.draw.rect(screen, "pink", tour_selectioner_ameliorer.rect)
             pygame.draw.circle(screen, "grey", tour_selectioner_ameliorer.rect.center, tour_selectioner_ameliorer.range, 2)
             tour_selectioner_ameliorer.afficher() #car sinon le carré pink recouvre la tour
-
+        
         for élément in hud:
             élément.afficher()
         
         Vie1.afficher()
         argent_joueur.afficher()#permet d'afficher l'argnet du joueur
     
-
         # for i in hitbox_chemin:# pour afficher la hitbox du chemin et debuger le code
         #    pygame.draw.rect(screen, "red", i)
+        
     pygame.display.update()
-    clock.tick(100000)  #Limite à 60 FPS
+    clock.tick(60)  #Limite à 60 FPS
 
 """
 a faire
-    
     faire une fonction qui tire avec la classe Tour
         les balles despagnes si elles ne  sont pas contenue dans l'écran, vérifier si une grande balle despawn quand une petite partie de sa hitbox sort de l'écran ou quand l'entéirter de sa hitbox sort
         régler le pb qu'on ne voit pas les balles des fois (faire en sorte qu'elle despawn un peu après leur touche de l'ennemie)
@@ -711,6 +765,4 @@ a faire
     idée :
         enlever le limite à 60 fps et calculer tout les déplacement avec un fonction qui regarde cb de temps depuis la dernière fram et qui avance les ennemies en conséquence
         pb : assez dur a coder, il faut faire gaffe a ce que tout marche comme avant.
-        
-    faire un systeme de explosion avec des degat de zone
         """

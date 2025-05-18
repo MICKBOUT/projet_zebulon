@@ -42,7 +42,7 @@ tour_3 et plus:
 #cooldow, range, pénétration, effect tire, dégat des tire, index balle, cost upgrade next lv 
 tour_1 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 400, False, None, 20, 0, 500 , 0), (10 , 600, False, None, 20 , 0, None, 0)]
 tour_2 = [(100, 250, False, None, 50, 1, 600, 0), (80 , 250, False, None, 75, 1, 1200, 0), (120, 250, False, None, 100, 1, None, 0)]
-tour_3 = [(100, 400, False, None, 20, 2, 350, 1), (100, 400, False, None, 20, 2, 500 , 1), (100, 400, False, None, 20 , 2, None, 1)]
+tour_3 = [(100, 400, False, None, 20, 2, 500, 1), (100, 400, False, None, 20, 2, 500 , 1), (100, 400, False, None, 20 , 2, None, 1)]
 tour_4 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
 tour_5 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
 tour_6 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
