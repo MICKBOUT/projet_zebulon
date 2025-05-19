@@ -25,8 +25,15 @@ background_planks = pygame.image.load("assets/background/planks_background.jpg")
 ennemi_escargot_image = (pygame.image.load("assets/enemi/escargot.png").convert_alpha(), pygame.image.load("assets/enemi/escargot_toucher.png").convert_alpha())
 ennemi_poulet_image = (pygame.image.load("assets/enemi/poulet.png").convert_alpha(), pygame.image.load("assets/enemi/poulet_toucher.png").convert_alpha())
 ennemi_bee_image = (pygame.image.load("assets/enemi/bee.png").convert_alpha(), pygame.image.load("assets/enemi/bee_toucher.png").convert_alpha())
-ennemi_ours_image = (pygame.image.load("assets/enemi/ours.png").convert_alpha(), pygame.image.load("assets/enemi/ours_toucher.png").convert_alpha())
 ennemi_rhino_image = (pygame.image.load("assets/enemi/rhino.png").convert_alpha(), pygame.image.load("assets/enemi/rinho_toucher.png").convert_alpha())
+
+ennemi_ours_image = ((pygame.image.load("assets/enemi/bear_1.png").convert_alpha(),
+                     pygame.image.load("assets/enemi/bear_2.png").convert_alpha(),
+                     pygame.image.load("assets/enemi/bear_3.png").convert_alpha()),
+                     (pygame.image.load("assets/enemi/bear_toucher_1.png").convert_alpha(),
+                     pygame.image.load("assets/enemi/bear_toucher_2.png").convert_alpha(),
+                     pygame.image.load("assets/enemi/bear_toucher_3.png").convert_alpha()))
+
 ennemie_oiseau_image = ((pygame.image.load("assets/enemi/oiseau_1.png").convert_alpha(),
                         pygame.image.load("assets/enemi/oiseau_2.png").convert_alpha(),
                         pygame.image.load("assets/enemi/oiseau_3.png").convert_alpha(),
@@ -62,7 +69,6 @@ bouton_valider_image = pygame.image.load("assets/button/valider.png").convert_al
 boutton_son_on_image = pygame.image.load("assets/button/son.png").convert_alpha()
 boutton_son_off_image = pygame.image.load("assets/button/muet.png").convert_alpha()
 son_image = boutton_son_on_image if son else boutton_son_off_image
-
 
 ecran_noir_opaque = pygame.Surface((1600, 900)).convert()
 ecran_noir_opaque.fill((0, 0, 0))
@@ -226,7 +232,7 @@ class Vie():
     def __init__(self, vie, image):
             self.vie_initiale = vie
             self.vie = vie
-            self.pos = (320, 800)
+            self.pos = (100, 800)
             self.image = image
             self.rect = self.image.get_rect(center=self.pos)
             self.text = font.render(str(vie), True, (150, 0, 0))
@@ -245,12 +251,12 @@ class Vie():
     
     def afficher(self):
         screen.blit(self.image, self.pos)
-        screen.blit(self.text, (140, 800))
+        screen.blit(self.text, (205, 810))
 
 class Argent():
     def __init__(self, argent):
             self.rendu = False
-            self.pos = (850, 810)
+            self.pos = (800, 810)
             self.argent = argent
             self.text = font.render(f"{self.argent}$", True, "black")
             self.tick_clignotment = 0
@@ -295,7 +301,7 @@ class Vagues():
         self.running = False
         self.compteur_vague_tick = 0
         self.text_vague = font.render("Vague 0", True, (105, 78, 165))
-        self.rect_text_vague = self.text_vague.get_rect(center = (600, 850))
+        self.rect_text_vague = self.text_vague.get_rect(topleft = (380, 810))
 
     def prochaine_vague(self):
         self.numero_vague += 1
@@ -320,7 +326,7 @@ class Vagues():
             elif self.ennemis_a_spawn[self.numero_chaine][0] == "bear":
                 groupe_enemie.add(Enemi(3, image = ennemi_ours_image))
             elif self.ennemis_a_spawn[self.numero_chaine][0] == "rhino":
-                groupe_enemie.add(Enemi(4, image = enemi_rhino_image))
+                groupe_enemie.add(Enemi(4, image = ennemi_rhino_image))
             elif self.ennemis_a_spawn[self.numero_chaine][0] == "oiseau":
                 groupe_enemie.add(Enemi(5, image = ennemie_oiseau_image))
             self.ennemis_spawn_de_la_chaine += 1

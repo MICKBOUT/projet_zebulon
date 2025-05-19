@@ -56,11 +56,11 @@ stat_balle = (balle_1, balle_2, balle_3)
 
 #speed, vie, degat, animation, argent_rapporté
 escargot = [1, 50  , 1, False, 10]
-poulet =   [2, 75  , 1, False,7]
-bee =      [3, 125  , 1, False,10]
-bear =     [2, 500 , 1, False,30]
-rhino =    [1, 2000, 1, False,0]
-oiseau =   [3, 200 , 1, True ,15]
+poulet =   [2, 75  , 1, False, 7 ]
+bee =      [3, 125 , 1, False, 10]
+bear =     [2, 500 , 1, True , 30]
+rhino =    [1, 2000, 1, False, 0 ]
+oiseau =   [3, 200 , 1, True , 15]
 stat_ennemie = (escargot, poulet, bee, bear, rhino, oiseau)
 index_ennemie = {"escargot" : 0, "poulet" : 1, "bee" : 2, "bear" : 3, "rhino" : 4, "oiseau": 5}
 
