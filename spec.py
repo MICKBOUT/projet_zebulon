@@ -58,7 +58,7 @@ stat_balle = (balle_1, balle_2, balle_3)
 escargot = [1, 50  , 1, False]
 poulet =   [2, 75  , 1, False]
 bee =      [3, 75  , 1, False]
-bear =     [2, 250 , 1, False]
+bear =     [2, 250 , 1, True]
 rhino =    [1, 1000, 1, False]
 oiseau =   [3, 200 , 1, True ]
 stat_ennemie = (escargot, poulet, bee, bear, rhino, oiseau)
@@ -100,8 +100,7 @@ annimaux :
 """
 vague_predefinie = [
 [
-    ["oiseau", 20, 1000],
-    ["oiseau", 5, 500]
+    ["escargot", 5, 1000]
 
 ],
 [
