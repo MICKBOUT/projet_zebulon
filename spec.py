@@ -40,7 +40,7 @@ tour_3 et plus:
     duplication de la tour  1 pour tester des fonctionalité dans le code
         """
 #cooldow, range, pénétration, effect tire, dégat des tire, index balle, cost upgrade next lv 
-tour_1 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 400, False, None, 20, 0, 500 , 0), (10 , 600, False, None, 20 , 0, None, 0)]
+tour_1 = [(40 , 200, False, None, 20, 0, 500, 0), (20 , 225, False, None, 20, 0, 1500 , 0), (10 , 250, False, None, 20 , 0, None, 0)]
 tour_2 = [(100, 250, False, None, 50, 1, 600, 0), (80 , 250, False, None, 75, 1, 1200, 0), (120, 250, False, None, 100, 1, None, 0)]
 tour_3 = [(100, 400, False, None, 20, 2, 500, 1), (100, 400, False, None, 20, 2, 500 , 1), (100, 400, False, None, 20 , 2, None, 1)]
 tour_4 = [(40 , 200, False, None, 20, 0, 350, 0), (20 , 200, False, None, 20, 0, 500 , 0), (10 , 200, False, None, 20 , 0, None, 0)]
@@ -54,13 +54,13 @@ balle_2 = [50, 20, False, 1]
 balle_3 = [60, 8 , 120 , 2]
 stat_balle = (balle_1, balle_2, balle_3)
 
-#speed, vie, degat, animation 
-escargot = [1, 50  , 1, False]
-poulet =   [2, 75  , 1, False]
-bee =      [3, 75  , 1, False]
-bear =     [2, 250 , 1, True]
-rhino =    [1, 1000, 1, False]
-oiseau =   [3, 200 , 1, True ]
+#speed, vie, degat, animation, argent_rapporté
+escargot = [1, 50  , 1, False, 10]
+poulet =   [2, 75  , 1, False,7]
+bee =      [3, 125  , 1, False,10]
+bear =     [2, 500 , 1, False,30]
+rhino =    [1, 2000, 1, False,0]
+oiseau =   [3, 200 , 1, True ,15]
 stat_ennemie = (escargot, poulet, bee, bear, rhino, oiseau)
 index_ennemie = {"escargot" : 0, "poulet" : 1, "bee" : 2, "bear" : 3, "rhino" : 4, "oiseau": 5}
 
@@ -100,16 +100,16 @@ annimaux :
 """
 vague_predefinie = [
 [
-    ["escargot", 5, 1000]
+    ["escargot", 200, 500],
 
 ],
 [
-    ["poulet", 20, 1000],
-    ["poulet", 5, 1000]
+    ["escargot", 15, 1250],
+    ["escargot", 5, 1000]
 ],
 [
-    ["poulet", 20, 1000],
-    ["poulet", 5, 1000]
+    ["escargot", 20, 500],
+    ["poulet", 3, 1000]
 ],
 [
     ["poulet", 20, 1000],
