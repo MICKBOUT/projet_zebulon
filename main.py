@@ -8,10 +8,12 @@ pygame.display.set_caption("V1 Tower Defense")
 clock = pygame.time.Clock()
 
 son = True
+music = True
 pause = False
 running = True
 mode_placement = False
 mode_ameliorer = False
+volume = 0.6
 
 #screen
 frame_rate = 60
@@ -52,27 +54,29 @@ ennemie_oiseau_image = ((pygame.image.load("assets/enemi/oiseau_1.png").convert_
 #background image
 background_v1 = pygame.image.load("assets/tour/background_v1.png").convert()
 
-#son
-son_vente_tour = pygame.mixer.Sound("assets/sound/son_vente_tour.mp3")
-son_refus = pygame.mixer.Sound("assets/sound/erreur.mp3")
-son_tour_placer = pygame.mixer.Sound("assets/sound/placement_tour.mp3")
-son_tire = pygame.mixer.Sound("assets/sound/tour_tire.mp3")
-son_cannon = pygame.mixer.Sound("assets/sound/cannon_tire.mp3")
-son_liste = (son_tire, son_cannon)
+pygame.mixer.music.load("assets/sound/background_audio.ogg")
+pygame.mixer.music.play(-1)
+if not son: pygame.mixer.music.pause() #dans le cas ou la variable plus haut est régler sur False
 
 #icone
 vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
 
 #boutton
+bouton_reset_image = pygame.image.load("assets/button/reset.png").convert_alpha()
+bouton_plus_image = pygame.image.load("assets/button/plus.png").convert_alpha()
+bouton_moins_image = pygame.image.load("assets/button/moins.png").convert_alpha()
 bouton_accelere_image = pygame.image.load("assets/button/accelere.png").convert_alpha()
 bouton_vendre_tour_image = pygame.image.load("assets/button/vendre_la_tour.png").convert_alpha() 
 bouton_setting_image = pygame.image.load("assets/button/setting.png").convert_alpha()
 bouton_play_image = pygame.image.load("assets/button/boutton_jouer.png").convert_alpha()
 bouton_valider_image = pygame.image.load("assets/button/valider.png").convert_alpha()
+bouton_exit_placer_image = pygame.image.load("assets/button/croix_fermer.png").convert_alpha()
 bouton_son_on_image = pygame.image.load("assets/button/son.png").convert_alpha()
 bouton_son_off_image = pygame.image.load("assets/button/muet.png").convert_alpha()
-bouton_exit_placer_image = pygame.image.load("assets/button/croix_fermer.png").convert_alpha()
 son_image = bouton_son_on_image if son else bouton_son_off_image
+bouton_music_on_image = pygame.image.load("assets/button/music_on.png").convert_alpha()
+bouton_music_off_image = pygame.image.load("assets/button/music_off.png").convert_alpha()
+music_image = bouton_music_on_image if music else bouton_music_off_image
 
 #ecran noir opaque pour le menu pause
 ecran_noir_opaque = pygame.Surface((1600, 900)).convert()
@@ -90,6 +94,17 @@ pygame.time.set_timer(SPAWN_ENEMY, 1000)
 font = pygame.font.Font(None, 130)
 font_prix = pygame.font.Font(None, 75)
 font_amiliorer = pygame.font.Font(None, 39)
+
+#son
+son_vente_tour = pygame.mixer.Sound("assets/sound/son_vente_tour.mp3")
+son_refus = pygame.mixer.Sound("assets/sound/erreur.mp3")
+son_tour_placer = pygame.mixer.Sound("assets/sound/placement_tour.mp3")
+son_tire = pygame.mixer.Sound("assets/sound/tour_tire.mp3")
+son_cannon = pygame.mixer.Sound("assets/sound/cannon_tire.mp3")
+son_liste = (son_tire, son_cannon)
+liste_son_gen = [son_vente_tour, son_refus, son_tour_placer, son_tire, son_cannon]
+text_son = font.render(f"{int(volume * 10)}", True, (105, 78, 165))
+text_son_rect = text_son.get_rect(center = (550, 320))
 
 #Tour :
     #image améliorer tout
@@ -485,6 +500,10 @@ class Hud_tour(pygame.sprite.Sprite):
 
 #variriable gérer par les classes
 
+bouton_reset = Button((740, 440), bouton_reset_image)
+bouton_moins = Button((610, 250), bouton_moins_image)
+bouton_plus = Button((750, 250), bouton_plus_image)
+bouton_music = bouton_music_on_image.get_rect(topleft = (350, 450))
 bouton_son = bouton_son_on_image.get_rect(topleft = (350, 250))
 bouton_ameliorer_valider = Button((1250, 675), bouton_valider_image)
 bouton_ameliorer_annuler = Button((1400, 675), bouton_exit_placer_image)
@@ -507,7 +526,7 @@ def reset():
     """
     cette conction permet de reset le jeu
     """
-    global groupe_enemie, groupe_tour, groupe_balle, Vie_joueur, argent_joueur, Systeme_Vague, mode_placement, mode_ameliorer
+    global groupe_enemie, groupe_tour, groupe_balle, Vie_joueur, argent_joueur, Systeme_Vague, mode_placement, mode_ameliorer, pause
     groupe_enemie = pygame.sprite.Group() # Groupe d'ennemis
     groupe_tour = pygame.sprite.Group() #groupe avec les tour
     groupe_balle = pygame.sprite.Group() #groupe avec les balles
@@ -516,6 +535,7 @@ def reset():
     Systeme_Vague = Vagues() #classe pour gérer le système de vague
     mode_placement = False
     mode_ameliorer = False
+    pause = False
 
 def entrer_mode_placement(tour_input):
     """
@@ -536,7 +556,7 @@ def affichage_gen():
     cette fonction sert a afficher tout ce que le jeu doit montrer au joueur
     cette fonction ne change aucune variable elle s'occupe uniquement d'afficher sur l'écran
     """
-    screen.fill("yellow") #fond jaune
+    screen.fill((239, 239, 145)) #fond jaune
     screen.blit(map_image, (0, 0)) #map
     affichage_jeu()
     affichage_ath()
@@ -625,6 +645,19 @@ def affichage_ath():
     argent_joueur.afficher()#permet d'afficher l'argnet du joueur
     bouton_accelere.afficher()
 
+def set_volume(valeur):
+    """
+    valeur est la variable a laquelle tout les son sont régler
+    """
+    global text_son, text_son_rect
+
+    for s in liste_son_gen:
+        s.set_volume(valeur)
+    if music: 
+        pygame.mixer.music.set_volume(valeur)
+    text_son = font.render(f"{int(valeur * 10)}", True, (105, 78, 165))
+    text_son_rect = text_son.get_rect(center = (550, 320))
+
 # Boucle principale
 while running:
     mouse_pos = pygame.mouse.get_pos()
@@ -642,19 +675,53 @@ while running:
                     if not setting_rect.collidepoint(mouse_pos):
                         pause = False
                     elif bouton_son.collidepoint(mouse_pos):
-                        if son == True:
+                        if son:
                             son = False
+                            pygame.mixer.music.pause()
                             son_image = bouton_son_off_image
                         else:
                             son = True
+                            pygame.mixer.music.unpause()
                             son_image = bouton_son_on_image
-        
-        
+                    
+                    elif bouton_moins.is_overmouse(mouse_pos):
+                        if volume >= 0.2:
+                            volume -= 0.1
+                        else: 
+                            volume = 0
+                        set_volume(volume)
+
+                    elif bouton_plus.is_overmouse(mouse_pos):
+                        if volume <= 0.8:
+                            volume += 0.1
+                        else: 
+                            volume = 1
+                        set_volume(volume)
+
+                    elif bouton_music.collidepoint(mouse_pos):
+                        if music:
+                            music = False
+                            pygame.mixer.music.set_volume(0)
+                            music_image = bouton_music_off_image
+                        else:
+                            music = True
+                            pygame.mixer.music.set_volume(volume)
+                            music_image = bouton_music_on_image
+                    
+                    elif bouton_reset.is_overmouse(mouse_pos):
+                        reset()
+                        
+                        
         affichage_gen() #affichage habituelle:
         screen.blit(ecran_noir_opaque, (0, 0)) #perrmet d'avoir un fond noircis pour que le joueur comprenne qu'il est dans une autres fenêtre
-        pygame.draw.rect(screen, "white", (300, 200, 600, 400)) #fond qui sert de menu pause
-        pygame.draw.rect(screen, "black",(310, 210, 580, 380))
+        pygame.draw.rect(screen, "black", (300, 200, 600, 400)) #fond qui sert de menu pause
+        pygame.draw.rect(screen, (255, 240, 188), (310, 210, 580, 380))
         screen.blit(son_image, bouton_son)
+        screen.blit(music_image, bouton_music)
+        screen.blit(text_son, text_son_rect)
+        bouton_plus.afficher()
+        bouton_moins.afficher()
+        bouton_reset.afficher()
 
     else: #boucle normal, dans le cas ou le jeu n'est pas en pause
         mouse_pos = pygame.mouse.get_pos()
@@ -693,9 +760,6 @@ while running:
 
                 elif event.key == pygame.K_SPACE:
                     argent_joueur.ajouter(1000)
-
-                elif event.key == pygame.K_p:
-                    reset()
 
                 #pour que le joueur puisse selectioner une tour avec son clavier
                 elif event.key == pygame.K_a:
