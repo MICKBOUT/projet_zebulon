@@ -1,6 +1,6 @@
 import pygame
 import math
-from spec import stat_tour, stat_balle, stat_ennemie, vague_predefinie
+from spec_sql import stat_tour, stat_balle, stat_ennemie, vague_predefinie
 
 # Initialisation
 pygame.init()
@@ -360,7 +360,7 @@ class Tour(pygame.sprite.Sprite):
     """
     def __init__(self, position, nb_tour = 0):
         super().__init__()
-        self.cooldown, self.range, self.traverse, self.effect, self.degat, self.index_balle, self.cost_upgrade, self.son = stat_tour[nb_tour][0]
+        self.cooldown, self.range, self.degat, self.index_balle, self.cost_upgrade, self.son = stat_tour[nb_tour + 1][0]
         
         self.index_tour = nb_tour
         self.ennemie = None #sert a savoir si un enemie est viser ou non
@@ -381,7 +381,7 @@ class Tour(pygame.sprite.Sprite):
         self.image = self.image_upgrade[self.niveau - 2]
         self.image_load = self.image
         self.rect_image_affichage = self.image.get_rect(center = (self.position))
-        self.cooldown, self.range, self.traverse, self.effect, self.degat, self.index_balle, self.cost_upgrade, self.son = stat_tour[self.index_tour][self.niveau - 1]
+        self.cooldown, self.range, self.degat, self.index_balle, self.cost_upgrade, self.son = stat_tour[self.index_tour + 1][self.niveau - 1]
 
     def viser(self):
         if not self.ennemie in groupe_enemie: #version pas opti mais qui marche
@@ -579,11 +579,8 @@ def affichage_jeu():
         pygame.draw.rect(screen, "pink", tour_selectioner_ameliorer.rect)
         pygame.draw.circle(screen, "grey", tour_selectioner_ameliorer.rect.center, tour_selectioner_ameliorer.range, 2)
         tour_selectioner_ameliorer.afficher() #car sinon le carré pink recouvre la tour
-    
-    if mode_placement: #range de la tour
-            pygame.draw.circle(screen, "grey", mouse_pos, stat_tour[Tour_selectioner_placement.tour_index][0][1], 2)
 
-    elif mode_placement:
+    if mode_placement:
         bouton_exit_placer.afficher()
         screen.blit(Tour_selectioner_placement.image, (screen_longeur-190, screen_hauteur-190))
         
@@ -596,17 +593,17 @@ def affichage_jeu():
                 screen.blit(liste_tour[Tour_selectioner_placement.tour_index][0], (mouse_pos[0] - (Tour_selectioner_placement.taille_reel//2), mouse_pos[1] - (Tour_selectioner_placement.taille_reel//2)))
     
     if mode_placement: #range de la tour
-            bouton_exit_placer.afficher()
-            pygame.draw.circle(screen, "grey", mouse_pos, stat_tour[Tour_selectioner_placement.tour_index][0][1], 2)
-            screen.blit(Tour_selectioner_placement.image, (screen_longeur-190, screen_hauteur-190))
-            
-            if map_rect.contains(mouse_tour_rect):
-                if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin) and not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon -5) for une_tour in groupe_tour):
-                        pygame.draw.rect(screen, "green", mouse_tour_rect)
-                        screen.blit(liste_tour[Tour_selectioner_placement.tour_index][0], (mouse_pos[0] - (Tour_selectioner_placement.taille_reel//2), mouse_pos[1] - (Tour_selectioner_placement.taille_reel//2)))
-                else:
-                    pygame.draw.rect(screen, "black", (mouse_tour_rect))
+        bouton_exit_placer.afficher()
+        pygame.draw.circle(screen, "grey", mouse_pos, stat_tour[Tour_selectioner_placement.tour_index + 1][0][1], 2)
+        screen.blit(Tour_selectioner_placement.image, (screen_longeur-190, screen_hauteur-190))
+        
+        if map_rect.contains(mouse_tour_rect):
+            if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin) and not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon -5) for une_tour in groupe_tour):
+                    pygame.draw.rect(screen, "green", mouse_tour_rect)
                     screen.blit(liste_tour[Tour_selectioner_placement.tour_index][0], (mouse_pos[0] - (Tour_selectioner_placement.taille_reel//2), mouse_pos[1] - (Tour_selectioner_placement.taille_reel//2)))
+            else:
+                pygame.draw.rect(screen, "black", (mouse_tour_rect))
+                screen.blit(liste_tour[Tour_selectioner_placement.tour_index][0], (mouse_pos[0] - (Tour_selectioner_placement.taille_reel//2), mouse_pos[1] - (Tour_selectioner_placement.taille_reel//2)))
 
 def affichage_ath():
     """
