@@ -56,7 +56,7 @@ background_v1 = pygame.image.load("assets/tour/background_v1.png").convert()
 
 pygame.mixer.music.load("assets/sound/background_audio.ogg")
 pygame.mixer.music.play(-1)
-if not son: pygame.mixer.music.pause() #dans le cas ou la variable plus haut est régler sur False
+if not son or not music: pygame.mixer.music.pause() #dans le cas ou la variable plus haut est régler sur False
 
 #icone
 vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
@@ -117,18 +117,16 @@ text_amiliorer_nv_max_rect = text_amiliorer_nv_max.get_rect(midtop = (1400, 605)
 load_tour = [pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
             pygame.image.load("assets/tour/tour_2_rouge.png").convert_alpha(),
             pygame.image.load("assets/tour/tour_3_lv1.png").convert_alpha(),
-            pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
-            pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha(),
-            pygame.image.load("assets/tour/tour_1_lv1.png").convert_alpha()]
+            pygame.image.load("assets/tour/bank_lv1.png").convert_alpha(),
+            pygame.image.load("assets/tour/tour_4_lv1.png").convert_alpha(),]
 liste_tour = [(tour, tour.get_rect(topleft = (0, 0))) for tour in load_tour]
 
 liste_upgrade = (
     (pygame.image.load("assets/tour/tour_1_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_1_lv3.png").convert_alpha()),
     (pygame.image.load("assets/tour/tour_2_rouge_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_2_rouge_lv3.png").convert_alpha()),
     (pygame.image.load("assets/tour/tour_3_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_3_lv3.png").convert_alpha()),
-    (pygame.image.load("assets/tour/tour_1_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_1_lv3.png").convert_alpha()),
-    (pygame.image.load("assets/tour/tour_1_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_1_lv3.png").convert_alpha()),
-    (pygame.image.load("assets/tour/tour_1_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_1_lv3.png").convert_alpha()))
+    (pygame.image.load("assets/tour/bank_lv2.png").convert_alpha(), pygame.image.load("assets/tour/bank_lv3.png").convert_alpha()),
+    (pygame.image.load("assets/tour/tour_4_lv2.png").convert_alpha(), pygame.image.load("assets/tour/tour_4_lv3.png").convert_alpha()),)
 
 border = pygame.image.load("assets/tour/border.png").convert_alpha()
 border_rect = border.get_rect(topright = (screen_longeur, 0))
@@ -142,7 +140,7 @@ description = (pygame.image.load("assets/description_tour/description_tour_1.png
                )
 
 
-liste_tour_prix = [300, 500, 500] #300, 300, 300 #reste des prix pour les tours non défini 
+liste_tour_prix = [300, 500, 750, 2500, 15000] #300, 300, 300 #reste des prix pour les tours non défini 
 if len(liste_tour_prix) <= len(liste_tour): liste_tour_prix += ([-1] * (len(liste_tour) - len(liste_tour_prix))) #si j'ai oublier de mettre un prix pour une tour, ajoute des -1 a la liste pour que il n'y ai pas d'erreure dans le scripte
 
 #balles
@@ -344,6 +342,7 @@ class Vagues():
             elif self.ennemis_a_spawn[self.numero_chaine][0] == "oiseau":
                 groupe_enemie.add(Enemi(5, image = ennemie_oiseau_image))
             self.ennemis_spawn_de_la_chaine += 1
+        
         elif len(self.ennemis_a_spawn)-1 > self.numero_chaine:
             self.numero_chaine += 1
             self.ennemis_spawn_de_la_chaine = 0
@@ -404,16 +403,24 @@ class Tour(pygame.sprite.Sprite):
             self.rect_image_affichage = self.image.get_rect(center = (self.position))
 
     def tirer(self):
-        if self.tick_depuis_dernier_tire >= self.cooldown:
-            if self.ennemie != None:
-                groupe_balle.add(Balle_tour(self.index_balle, self.rect.center, self.angle))
-                if son: son_liste[self.son].play()
-                self.tick_depuis_dernier_tire = 0
+        if self.range > 0:    
+            if self.tick_depuis_dernier_tire >= self.cooldown:
+                if self.ennemie != None:
+                    groupe_balle.add(Balle_tour(self.index_balle, self.rect.center, self.angle))
+                    if son: son_liste[self.son].play()
+                    self.tick_depuis_dernier_tire = 0
+            else:
+                self.tick_depuis_dernier_tire += 1
         else:
-            self.tick_depuis_dernier_tire += 1
+            if Systeme_Vague.running:
+                if self.tick_depuis_dernier_tire >= self.cooldown:
+                    argent_joueur.ajouter(self.degat)
+                    self.tick_depuis_dernier_tire = 0
+                self.tick_depuis_dernier_tire += 1
 
     def update(self):
-        self.viser()
+        if self.range > 0:
+            self.viser()
         self.tirer()
 
     def afficher(self):
@@ -786,7 +793,7 @@ while running:
             #parti qui controle se qui se passe une fois que le joueur a cliquer qqpart 
             elif event.type == pygame.MOUSEBUTTONDOWN: #event pour détecter les clique de la souris
                 if event.button == 1: #si le joueur fait un clique gauche
-                    print(mouse_pos)#fonction pour debuger 
+                    #print(mouse_pos)#fonction pour debuger 
                     if bouton_setting.is_overmouse(mouse_pos) and not mode_placement:
                         pause = True
 
