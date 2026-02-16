@@ -263,19 +263,32 @@ point_ennemie = (
 class Enemi(pygame.sprite.Sprite):
     def __init__(self, index_ennemie, image):
         super().__init__()
+        # self.image prend la liste de toutes les iamges et après 
+        # dans la fonction afficher(), la bonne est afficher
+        self.image = image
         self.speed, self.vie, self.damage, self.animation, self.argent_rapporté = stat_ennemie[index_ennemie]
-        self.image = image  #self.image prend la liste de toutes les iamges et après dans la fonction afficher(), la bonne est afficher
-        if self.animation : self.rect = self.image[0][0].get_rect(center = (0, 440)) #dans le cas ou l'image a des animation, la premire image est dans la deuxième liste
-        else: self.rect = self.image[0].get_rect(center = (0, 440))
-        self.index_point = 0 #le point vers lequelle l'ennemie se dirige
-        self.distance = 0 #est ce que l'ennemie est loin ou pas sur la map ( pour viser avec les tours)
-        self.toucher = 0 #permet de compter le nb de frame pour que l'ennelie soit toucher
-        self.compteur = 0 #un compteur qui permet de savoir sur quelle image est le joueur
+        # dans le cas ou l'image a des animation, la premire image est dans la deuxième liste
+        if self.animation:
+            self.rect = self.image[0][0].get_rect(center = (0, 440)) 
+        else:
+            self.rect = self.image[0].get_rect(center = (0, 440))
+        # le point vers lequelle l'ennemie se dirige
+        self.index_point = 0 
+        # est ce que l'ennemie est loin ou pas sur la map ( pour viser avec les tours)
+        self.distance = 0
+        # permet de compter le nb de frame pour que l'ennelie soit toucher
+        self.toucher = 0
+        # un compteur qui permet de savoir sur quelle image est le joueur
+        self.compteur = 0
 
     def update(self):
         x, y = self.rect.center
-        if abs(x - point_ennemie[self.index_point][0]) < self.speed: #si la valeur abs est plus petit que la vitesse alors on met la pos a la destination cas a la prochaine frame l'ennemie sera au pts
-            x = point_ennemie[self.index_point][0] # associer la valeur de x au pt pour plus tard la mettre sur la variable slef.pos
+        #si la valeur abs est plus petit que la vitesse alors 
+        # on met la pos a la destination cas a la prochaine frame l'ennemie sera au pts
+        if abs(x - point_ennemie[self.index_point][0]) < self.speed: 
+            # associer la valeur de x au pt pour plus tard
+            # la mettre sur la variable slef.pos
+            x = point_ennemie[self.index_point][0] 
         else: #l'ennemie est encore loin du point
             if x < point_ennemie[self.index_point][0]:
                 x += self.speed
