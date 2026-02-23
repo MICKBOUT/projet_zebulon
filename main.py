@@ -26,7 +26,8 @@ screen = pygame.display.set_mode((screen_longeur, screen_hauteur))
 # map
 map_image = pygame.image.load("map/map.png").convert()
 map_rect = map_image.get_rect(topleft=(0, 0))
-background_planks = pygame.image.load("assets/background/planks_background.jpg").convert()
+background_planks = pygame.image.load(
+    "assets/background/planks_background.jpg").convert()
 
 # image ennemie
 ennemi_escargot_image = (
@@ -88,13 +89,13 @@ vie_image = pygame.image.load("assets/button/coeur.png").convert_alpha()
 
 # Boutton
 path = "assets/button/"
-
-load_ctm = pygame.image.load
+load_ctm = pygame.image.load  # load custom
 bouton_reset_image = load_ctm(f"{path}/reset.png").convert_alpha()
 bouton_plus_image = load_ctm(f"{path}/plus.png").convert_alpha()
 bouton_moins_image = load_ctm(f"{path}/moins.png").convert_alpha()
 bouton_accelere_image = load_ctm(f"{path}/accelere.png").convert_alpha()
-bouton_vendre_tour_image = load_ctm(f"{path}/vendre_la_tour.png").convert_alpha()
+bouton_vendre_tour_image = load_ctm(
+    f"{path}/vendre_la_tour.png").convert_alpha()
 bouton_setting_image = load_ctm(f"{path}/setting.png").convert_alpha()
 bouton_play_image = load_ctm(f"{path}/boutton_jouer.png").convert_alpha()
 bouton_valider_image = load_ctm(f"{path}/valider.png").convert_alpha()
@@ -156,7 +157,7 @@ text_amiliorer_nv_max = font_amiliorer.render(
     "black"
 )
 
-text_amiloorer_tour_rect = text_amiloorer_tour.get_rect(
+text_lv_up_tour_rect = text_amiloorer_tour.get_rect(
     midtop=(1400, 605)
 )
 text_amiliorer_nv_max_rect = text_amiliorer_nv_max.get_rect(
@@ -267,7 +268,13 @@ class Enemi(pygame.sprite.Sprite):
         # self.image prend la liste de toutes les iamges et après
         # dans la fonction afficher(), la bonne est afficher
         self.image = image
-        self.speed, self.vie, self.damage, self.animation, self.argent_rapporté = stat_ennemie[index_ennemie]
+        (
+            self.speed,
+            self.vie,
+            self.damage,
+            self.animation,
+            self.argent_rapporté
+        ) = stat_ennemie[index_ennemie]
         # dans le cas ou l'image a des animation,
         # la premire image est dans la deuxième liste
         if self.animation:
@@ -486,7 +493,14 @@ class Tour(pygame.sprite.Sprite):
     """
     def __init__(self, position, nb_tour=0):
         super().__init__()
-        self.cooldown, self.range, self.degat, self.index_balle, self.cost_upgrade, self.son = stat_tour[nb_tour + 1][0]
+        (
+            self.cooldown,
+            self.range,
+            self.degat,
+            self.index_balle,
+            self.cost_upgrade,
+            self.son
+        ) = stat_tour[nb_tour + 1][0]
 
         self.index_tour = nb_tour
         self.ennemie = None  # sert a savoir si un enemie est viser ou non
@@ -508,7 +522,14 @@ class Tour(pygame.sprite.Sprite):
         self.image = self.image_upgrade[self.niveau - 2]
         self.image_load = self.image
         self.rect_image_affichage = self.image.get_rect(center=(self.position))
-        self.cooldown, self.range, self.degat, self.index_balle, self.cost_upgrade, self.son = stat_tour[self.index_tour + 1][self.niveau - 1]
+        (
+            self.cooldown,
+            self.range,
+            self.degat,
+            self.index_balle,
+            self.cost_upgrade,
+            self.son
+        ) = stat_tour[self.index_tour + 1][self.niveau - 1]
 
     def viser(self):
         if not self.ennemie not in groupe_enemie:
@@ -635,7 +656,8 @@ class Hud_tour(pygame.sprite.Sprite):
         super().__init__()
         self.tour_index = tour_index
         self.taille_reel = liste_tour[tour_index][1].w
-        self.image = pygame.transform.scale_by(liste_tour[tour_index][0], 180/self.taille_reel)
+        self.image = pygame.transform.scale_by(
+            liste_tour[tour_index][0], 180/self.taille_reel)
         self.prix = liste_tour_prix[tour_index]
         self.rect = pygame.Rect(
             map_rect.right + 200 * ((tour_index) % 2),
@@ -656,7 +678,10 @@ class Hud_tour(pygame.sprite.Sprite):
         groupe_tour.add(Tour(position, self.tour_index))
 
     def afficher(self):
-        "permet d'avoir un meilleur controle sur l'affichage des tours, avec le background et le reste"
+        """
+        permet d'avoir un meilleur controle sur l'affichage des tours,
+        avec le background et le reste
+        """
         pygame.draw.rect(screen, 'black', self.rect)
         screen.blit(background_v1, self.rect)
         screen.blit(self.image, (self.rect.x + 10, self.rect.y + 10))
@@ -688,13 +713,15 @@ groupe_balle = pygame.sprite.Group()  # groupe avec les balles
 Vie_joueur = Vie(100, vie_image)  # classe pour gérer la vie
 argent_joueur = Argent(500)  # classe qui défini l'argent du joueur
 Systeme_Vague = Vagues()  # classe pour gérer le système de vague
+tour_selec_ameliorer = None  # aucune tour n'est selectioner
 
 
 def reset():
     """
     cette conction permet de reset le jeu
     """
-    global groupe_enemie, groupe_tour, groupe_balle, Vie_joueur, argent_joueur, Systeme_Vague, mode_placement, mode_ameliorer, pause
+    global groupe_enemie, groupe_tour, groupe_balle, Vie_joueur, argent_joueur
+    global Systeme_Vague, mode_placement, mode_ameliorer, pause
     groupe_enemie = pygame.sprite.Group()  # Groupe d'ennemis
     groupe_tour = pygame.sprite.Group()  # groupe avec les tour
     groupe_balle = pygame.sprite.Group()  # groupe avec les balles
@@ -762,17 +789,17 @@ def affichage_jeu():
         pygame.draw.rect(
             screen,
             "pink",
-            tour_selectioner_ameliorer.rect
+            tour_selec_ameliorer.rect
         )
         pygame.draw.circle(
             screen,
             "grey",
-            tour_selectioner_ameliorer.rect.center,
-            tour_selectioner_ameliorer.range,
+            tour_selec_ameliorer.rect.center,
+            tour_selec_ameliorer.range,
             2
         )
         # car sinon le carré pink recouvre la tour
-        tour_selectioner_ameliorer.afficher()
+        tour_selec_ameliorer.afficher()
 
     if mode_placement:
         bouton_exit_placer.afficher()
@@ -782,7 +809,17 @@ def affichage_jeu():
         )
 
         if map_rect.contains(mouse_tour_rect):
-            if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin) and not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon - 5) for une_tour in groupe_tour):
+            if (
+               not any(bout_de_chemin.colliderect(mouse_tour_rect)
+                       for bout_de_chemin in hitbox_chemin)
+               and not any(
+                          math.sqrt(
+                            (mouse_pos[0] - une_tour.rect.centerx)**2 +
+                            (mouse_pos[1] - une_tour.rect.centery)**2)
+                          <=
+                          (une_tour.rayon + mouse_tour_rayon - 5)
+                          for une_tour in groupe_tour)
+               ):
                 pygame.draw.rect(screen, "green", mouse_tour_rect)
                 screen.blit(
                     liste_tour[Tour_selec_placmt.tour_index][0],
@@ -814,7 +851,18 @@ def affichage_jeu():
         )
 
         if map_rect.contains(mouse_tour_rect):
-            if not any(bout_de_chemin.colliderect(mouse_tour_rect) for bout_de_chemin in hitbox_chemin) and not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon -5) for une_tour in groupe_tour):
+            if (
+               not any(
+                      bout_de_chemin.colliderect(mouse_tour_rect)
+                      for bout_de_chemin in hitbox_chemin)
+               and not any(
+                        math.sqrt(
+                            (mouse_pos[0] - une_tour.rect.centerx)**2 +
+                            (mouse_pos[1] - une_tour.rect.centery)**2)
+                        <=
+                        (une_tour.rayon + mouse_tour_rayon - 5)
+                        for une_tour in groupe_tour)
+               ):
                 pygame.draw.rect(screen, "green", mouse_tour_rect)
                 screen.blit(
                     liste_tour[Tour_selec_placmt.tour_index][0],
@@ -861,9 +909,9 @@ def affichage_ath():
         bouton_setting.afficher()
 
     if mode_ameliorer:
-        if tour_selectioner_ameliorer.niveau < 3:
-            screen.blit(text_amiloorer_tour, text_amiloorer_tour_rect)
-            screen.blit(text_cout_amelioration, text_cout_amelioration_rect)
+        if tour_selec_ameliorer.niveau < 3:
+            screen.blit(text_amiloorer_tour, text_lv_up_tour_rect)
+            screen.blit(text_cost_lv_up, text_cost_lv_up_rect)
             bouton_ameliorer_valider.afficher()
             bouton_ameliorer_annuler.afficher()
         else:
@@ -1080,7 +1128,15 @@ while running:
                                        bout_de_chemin.colliderect(
                                         mouse_tour_rect)
                                        for bout_de_chemin in hitbox_chemin):
-                                if not any(math.sqrt((mouse_pos[0] - une_tour.rect.centerx)**2 + (mouse_pos[1] - une_tour.rect.centery)**2) <= (une_tour.rayon + mouse_tour_rayon - 5) for une_tour in groupe_tour):
+                                if not any(
+                                    math.sqrt(
+                                        (mouse_pos[0] -
+                                         une_tour.rect.centerx)**2 +
+                                        (mouse_pos[1] -
+                                         une_tour.rect.centery)**2)
+                                        <=
+                                        une_tour.rayon + mouse_tour_rayon - 5
+                                        for une_tour in groupe_tour):
                                     # le -5 est pour une marge
                                     # et que le jeu ne soit pas trop frustrant
                                     # pour le joueur)
@@ -1091,30 +1147,36 @@ while running:
                                         mouse_pos)
                                     argent_joueur.retirer(
                                         liste_tour_prix[
-                                        Tour_selec_placmt.tour_index]
+                                            Tour_selec_placmt.tour_index]
                                     )
                     else:
-                        # si mode placment == False 
+                        # si mode placment == False
                         # mais le joueur est dans le mode améliorer
                         if mode_ameliorer:
                             if bouton_ameliorer_valider.is_overmouse(
-                                mouse_pos):
-                                if tour_selectioner_ameliorer.niveau < 3:
-                                    if argent_joueur.argent >= tour_selectioner_ameliorer.cost_upgrade:
-                                        tour_selectioner_ameliorer.upgrade()
+                               mouse_pos):
+                                if tour_selec_ameliorer.niveau < 3:
+                                    if (
+                                       argent_joueur.argent >=
+                                       tour_selec_ameliorer.cost_upgrade
+                                       ):
+                                        tour_selec_ameliorer.upgrade()
                                     else:
                                         if son:
                                             son_refus.play()
                                         argent_joueur.clignotement()
 
                             elif bouton_vendre_la_tour.is_overmouse(mouse_pos):
-                                tour_selectioner_ameliorer.kill()
-                                rendre = liste_tour_prix[tour_selectioner_ameliorer.index_tour]
+                                tour_selec_ameliorer.kill()
+                                rendre = liste_tour_prix[
+                                    tour_selec_ameliorer.index_tour]
+                                # a lv 1 ont n'a pas upgrade la tour
                                 for i in range(
-                                    # a lv 1 ont n'a pas upgrade la tour
-                                    tour_selectioner_ameliorer.niveau - 1):
-                                    rendre += stat_tour[tour_selectioner_ameliorer.index_tour][i][6]
-                                argent_joueur.ajouter(rendre // 2 )
+                                   tour_selec_ameliorer.niveau - 1):
+                                    rendre += stat_tour[
+                                        tour_selec_ameliorer.index_tour][
+                                            i][6]
+                                argent_joueur.ajouter(rendre // 2)
                                 if son:
                                     son_vente_tour.play()
                             mode_ameliorer = False
@@ -1123,12 +1185,25 @@ while running:
                         # fonction qui clique sur une tour et qui regarde +
                         # le joueur n'est pas dans le mode amiliorer
                         for une_tour in groupe_tour:
-                            if math.sqrt((mouse_pos[0] - une_tour.rect.centerx) ** 2 + (mouse_pos[1] - une_tour.rect.centery)**2 )<= une_tour.rayon:
-                                tour_selectioner_ameliorer = une_tour
+                            if math.sqrt(
+                                (mouse_pos[0] -
+                                 une_tour.rect.centerx)**2 +
+                                (mouse_pos[1] -
+                                 une_tour.rect.centery)**2) <= une_tour.rayon:
+                                tour_selec_ameliorer = une_tour
                                 mode_ameliorer = True
-                                if tour_selectioner_ameliorer.niveau < 3:
-                                    text_cout_amelioration = font_amiliorer.render(f"coût amélioration : {tour_selectioner_ameliorer.cost_upgrade} $", True, "cyan", "black")
-                                    text_cout_amelioration_rect = text_cout_amelioration.get_rect(midtop=(text_amiloorer_tour_rect.midbottom))
+                                if tour_selec_ameliorer.niveau < 3:
+                                    text_cost_lv_up = (
+                                        font_amiliorer.render(
+                                            f"""coût amélioration :
+                                            {tour_selec_ameliorer.cost_upgrade
+                                             }$""", True, "cyan", "black"))
+                                    text_cost_lv_up_rect = (
+                                        text_cost_lv_up.get_rect(
+                                            midtop=(
+                                                text_lv_up_tour_rect.midbottom)
+                                                                )
+                                                            )
                                 # sert d'optimisation +
                                 # le joueur ne séléctionne pas 2 tour en
                                 # mm temps
@@ -1137,7 +1212,8 @@ while running:
             elif event.type == SPAWN_ENEMY and Systeme_Vague.running:
                 # Créer un nouvel ennemi
                 Systeme_Vague.update_vague()
-                if Systeme_Vague.compteur_vague_tick > 3 * Systeme_Vague.numero_vague and len(groupe_enemie) == 0:
+                if (Systeme_Vague.compteur_vague_tick >
+                   3 * Systeme_Vague.numero_vague and len(groupe_enemie) == 0):
                     Systeme_Vague.running = False
                     Systeme_Vague.stop_vague()
 
